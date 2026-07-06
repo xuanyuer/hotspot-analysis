@@ -1,0 +1,64 @@
+# Hotspot Analysis Report
+
+**Total files:** 58 | **Hotspots:** 58 (100%)
+
+| File | Churn | Complexity | Hotspot | Commits | Authors |
+|------|-------|------------|---------|---------|---------|
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/AccountAdaptor.java | 100.0 | 100.0 | 100.0 | 17 | 6 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/service/TransactionHistoryCreationProcessorService.java | 100.0 | 100.0 | 100.0 | 32 | 9 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/service/TransactionHistoryService.java | 100.0 | 100.0 | 100.0 | 45 | 13 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/util/StatementCommonUtils.java | 100.0 | 100.0 | 100.0 | 17 | 7 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/service/TransactionHistoryFilterService.java | 64.0 | 100.0 | 80.0 | 9 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/enums/SymbolEnum.java | 24.0 | 100.0 | 49.0 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/service/ReportTransactionHistoryControllerService.java | 24.0 | 100.0 | 49.0 | 4 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/util/StatementCommonUtilsTest.java | 56.0 | 40.0 | 47.3 | 8 | 5 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/service/TransactionHistoryFilterServiceTest.java | 40.0 | 40.0 | 40.0 | 6 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/config/WireMockConfig.java | 8.0 | 80.0 | 25.3 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/stream/ConsumerController.java | 16.0 | 40.0 | 25.3 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/StatementApplication.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/AccountAdaptorProperties.java | 32.0 | 0.0 | 0.0 | 5 | 4 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/EntitlementAdaptor.java | 8.0 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/EntitlementAdaptorProperties.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/LookupAdaptor.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/LookupAdaptorProperties.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/ProfileAdaptor.java | 24.0 | 0.0 | 0.0 | 4 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/adaptor/ProfileAdaptorProperties.java | 8.0 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/config/KafkaConfig.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/config/StringListJsonConverter.java | 0.0 | 80.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/controller/ReportTransactionHistoryController.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/controller/StatementController.java | 16.0 | 0.0 | 0.0 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/controller/TransactionHistoryController.java | 100.0 | 0.0 | 0.0 | 14 | 4 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/entity/TransactionHistoryEntity.java | 56.0 | 0.0 | 0.0 | 8 | 5 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/entity/TransactionHistoryListFilterEntity.java | 16.0 | 0.0 | 0.0 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/enums/DebitCreditEnum.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/enums/SortFieldMapper.java | 8.0 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/enums/TransactionHistoryTableSortColumnFieldEnum.java | 88.0 | 0.0 | 0.0 | 12 | 5 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/event/StreamHeader.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/projection/CounterpartyNameProjection.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/request/TransactionHistoryGetRequest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/request/TransactionHistoryKeywordRequest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/response/GetInternalAccountByRefIdContent.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/model/response/GetInternalAccountByRefIdResponse.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/repository/TransactionHistoryListFilterRepository.java | 16.0 | 0.0 | 0.0 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/repository/TransactionHistoryRepository.java | 100.0 | 0.0 | 0.0 | 16 | 7 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/service/CommonService.java | 0.0 | 100.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/service/InternalPostUserRefIdDeleteService.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/statement/util/Constants.java | 72.0 | 0.0 | 0.0 | 10 | 6 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/adaptor/AccountAdaptorReportTest.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/adaptor/AccountAdaptorTest.java | 16.0 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/adaptor/EntitlementAdaptorTest.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/adaptor/LookupAdaptorTest.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/adaptor/ProfileAdaptorTest.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/config/KafkaConfigTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/config/StringListJsonConverterTest.java | 8.0 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/config/WireMockConfigTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/controller/ReportTransactionHistoryControllerTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/controller/StatementControllerTest.java | 8.0 | 0.0 | 0.0 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/controller/TransactionHistoryControllerTest.java | 72.0 | 0.0 | 0.0 | 10 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/service/CommonServiceTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/service/InternalPostUserRefIdDeleteServiceTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/service/ReportTransactionHistoryControllerServiceTest.java | 16.0 | 0.0 | 0.0 | 3 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/service/TransactionHistoryCreationProcessorServiceTest.java | 100.0 | 0.0 | 0.0 | 14 | 7 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/service/TransactionHistoryServiceTest.java | 100.0 | 0.0 | 0.0 | 20 | 8 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/stream/ConsumerControllerTest.java | 40.0 | 0.0 | 0.0 | 6 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/statement/util/ConstantsTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |

@@ -1,0 +1,60 @@
+# Hotspot Analysis Report
+
+**Total files:** 54 | **Hotspots:** 54 (100%)
+
+| File | Churn | Complexity | Hotspot | Commits | Authors |
+|------|-------|------------|---------|---------|---------|
+| src/main/java/jp/co/smbc/gcms/stream/communication/service/EmailProcessorService.java | 100.0 | 100.0 | 100.0 | 12 | 4 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/service/InboxProcessorService.java | 100.0 | 100.0 | 100.0 | 11 | 4 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/service/StreamCommunicationProcessorService.java | 100.0 | 100.0 | 100.0 | 15 | 4 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/service/SseNotificationProcessorService.java | 82.4 | 80.0 | 81.2 | 7 | 3 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/service/CommonService.java | 47.1 | 80.0 | 61.4 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/properties/BoEventConfigMappingProperties.java | 35.3 | 100.0 | 59.4 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/service/TemplateService.java | 23.5 | 100.0 | 48.5 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/util/TemplateMappingAdaptor.java | 23.5 | 80.0 | 43.4 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/util/StructConverter.java | 35.3 | 40.0 | 37.6 | 3 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/RedisConfig.java | 23.5 | 40.0 | 30.7 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/AppConfigClientConfig.java | 11.8 | 40.0 | 21.7 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/StreamCommunicationServiceApplication.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/adaptor/EntitlementAdaptor.java | 47.1 | 0.0 | 0.0 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/adaptor/EntitlementAdaptorProperties.java | 23.5 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/adaptor/InboxAdaptor.java | 23.5 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/adaptor/InboxAdaptorProperties.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/adaptor/ProfileAdaptor.java | 47.1 | 0.0 | 0.0 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/adaptor/ProfileAdaptorProperties.java | 23.5 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/BlobStorageConfig.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/ErrorCollectorConfig.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/HandlebarsConfig.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/KafkaConfig.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/config/ProtoConfig.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/dto/EmailTemplate.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/dto/EventConfigDTO.java | 23.5 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/dto/InboxTemplate.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/dto/PushInboxRequest.java | 23.5 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/dto/TemplateContent.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/dto/TemplateMapping.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/template/MessageRequest.java | 23.5 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/model/template/MessageResponse.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/properties/SseEmitterProperties.java | 0.0 | 0.0 | 0.0 | 0 | 0 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/stream/StreamCommunicationProcessorConsumer.java | 23.5 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/util/Constants.java | 100.0 | 0.0 | 0.0 | 9 | 4 |
+| src/main/java/jp/co/smbc/gcms/stream/communication/util/package-info.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/adaptor/EntitlementAdaptorTest.java | 47.1 | 0.0 | 0.0 | 4 | 2 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/adaptor/InboxAdaptorTest.java | 47.1 | 0.0 | 0.0 | 4 | 2 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/adaptor/ProfileAdaptorTest.java | 47.1 | 0.0 | 0.0 | 4 | 2 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/AppConfigClientConfigTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/BlobStorageConfigTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/ErrorCollectorConfigTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/HandlebarsConfigTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/KafkaConfigTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/ProtoConfigTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/config/RedisConfigTest.java | 35.3 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/service/CommonServiceTest.java | 35.3 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/service/EmailProcessorServiceTest.java | 100.0 | 0.0 | 0.0 | 11 | 4 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/service/InboxProcessorServiceTest.java | 100.0 | 0.0 | 0.0 | 11 | 4 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/service/SseNotificationProcessorServiceTest.java | 100.0 | 0.0 | 0.0 | 9 | 3 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/service/StreamCommunicationProcessorServiceTest.java | 100.0 | 0.0 | 0.0 | 12 | 4 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/service/TemplateServiceTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/stream/StreamCommunicationProcessorConsumerTest.java | 23.5 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/util/StructConverterTest.java | 11.8 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/stream/communication/util/TemplateMappingAdaptorTest.java | 23.5 | 0.0 | 0.0 | 2 | 1 |

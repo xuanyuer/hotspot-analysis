@@ -1,0 +1,65 @@
+# Hotspot Analysis Report
+
+**Total files:** 59 | **Hotspots:** 16 (27%)
+
+| File | Churn | Complexity | Hotspot | Commits | Authors |
+|------|-------|------------|---------|---------|---------|
+| src/main/java/jp/co/smbc/gcms/channel/activity/mapper/ActivityRetrievalMapper.java | 100.0 | 100.0 | 100.0 | 13 | 6 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/ActivityRetrievalService.java | 100.0 | 100.0 | 100.0 | 15 | 7 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/CommonActivityLogSearchService.java | 100.0 | 100.0 | 100.0 | 21 | 8 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/AdminCompanyActivityRetrievalService.java | 100.0 | 80.0 | 89.4 | 19 | 9 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/ActivitySearchFilterService.java | 68.1 | 100.0 | 82.5 | 9 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/ActivityKeyWordSuggestionsService.java | 76.6 | 66.7 | 71.5 | 10 | 6 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/util/SortCriteriaExtractor.java | 42.6 | 93.3 | 63.0 | 6 | 3 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/CommonActivityLogSearchServiceTest.java | 100.0 | 26.7 | 51.6 | 23 | 7 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/util/CommonDateTimeFormattingUtils.java | 34.0 | 66.7 | 47.6 | 5 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/ActivityFilterOptionsService.java | 25.5 | 80.0 | 45.2 | 4 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/util/ActivityUserRefIdUtil.java | 25.5 | 80.0 | 45.2 | 4 | 3 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/mapper/ActivityRetrievalMapperTest.java | 100.0 | 13.3 | 36.5 | 13 | 6 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/service/PostInternalActivityReportActivitiesService.java | 8.5 | 100.0 | 29.2 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/config/StringListJsonConverter.java | 17.0 | 40.0 | 26.1 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/enums/ActivityLogSortEnum.java | 17.0 | 26.7 | 21.3 | 3 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/util/ConstantsTest.java | 17.0 | 26.7 | 21.3 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/mapper/ActivityFilterOptionsMapper.java | 8.5 | 26.7 | 15.1 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/util/SortCriteriaExtractorTest.java | 17.0 | 13.3 | 15.1 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/config/WireMockConfigTest.java | 8.5 | 13.3 | 10.7 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/PostInternalActivityReportActivitiesServiceTest.java | 8.5 | 13.3 | 10.7 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/ActivityApplication.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/BranchLookupAdaptor.java | 25.5 | 0.0 | 0.0 | 4 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/BranchLookupAdaptorProperties.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/DomainAdaptor.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/DomainAdaptorProperties.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/EntitlementAdaptor.java | 8.5 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/EntitlementAdaptorProperties.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/ProfileAdaptor.java | 25.5 | 0.0 | 0.0 | 4 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/adaptor/ProfileAdaptorProperties.java | 17.0 | 0.0 | 0.0 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/config/WireMockConfig.java | 0.0 | 26.7 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/controller/ActivityLogController.java | 68.1 | 0.0 | 0.0 | 9 | 5 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/controller/ActivitySearchFilterController.java | 42.6 | 0.0 | 0.0 | 6 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/ActivityLogResult.java | 42.6 | 0.0 | 0.0 | 6 | 4 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/ActivityLogSearchResponse.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/KeyLabel.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/OrderBy.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/PageInfo.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/SortCriteria.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/dto/ActivitySearchFilterDto.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/entity/ActivityListFilterEntity.java | 8.5 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/model/projection/ActivityFilterProjection.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/repository/ActivityListFilterRepository.java | 34.0 | 0.0 | 0.0 | 5 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/activity/util/Constants.java | 34.0 | 0.0 | 0.0 | 5 | 4 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/ActivityApplicationTest.java | 8.5 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/adaptor/BranchLookupAdaptorTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/adaptor/DomainAdaptorTest.java | 8.5 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/adaptor/EntitlementAdaptorTest.java | 8.5 | 0.0 | 0.0 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/adaptor/ProfileAdaptorTest.java | 8.5 | 0.0 | 0.0 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/config/StringListJsonConverterTest.java | 34.0 | 0.0 | 0.0 | 5 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/controller/ActivityLogControllerTest.java | 59.6 | 0.0 | 0.0 | 8 | 5 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/controller/ActivitySearchFilterControllerTest.java | 34.0 | 0.0 | 0.0 | 5 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/mapper/ActivityFilterOptionsMapperTest.java | 17.0 | 0.0 | 0.0 | 3 | 3 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/ActivityFilterOptionsServiceTest.java | 25.5 | 0.0 | 0.0 | 4 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/ActivityKeyWordSuggestionsServiceTest.java | 85.1 | 0.0 | 0.0 | 11 | 6 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/ActivityRetrievalServiceTest.java | 76.6 | 0.0 | 0.0 | 10 | 5 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/ActivitySearchFilterServiceTest.java | 59.6 | 0.0 | 0.0 | 8 | 3 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/service/AdminCompanyActivityRetrievalServiceTest.java | 100.0 | 0.0 | 0.0 | 18 | 9 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/util/ActivityUserRefIdUtilTest.java | 0.0 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/activity/util/CommonDateTimeFormattingUtilsTest.java | 8.5 | 0.0 | 0.0 | 2 | 1 |

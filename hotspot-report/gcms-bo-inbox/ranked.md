@@ -1,0 +1,66 @@
+# Hotspot Analysis Report
+
+**Total files:** 60 | **Hotspots:** 60 (100%)
+
+| File | Churn | Complexity | Hotspot | Commits | Authors |
+|------|-------|------------|---------|---------|---------|
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxDeleteService.java | 66.7 | 100.0 | 81.6 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxReadService.java | 66.7 | 80.0 | 73.0 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxBulkProcessService.java | 33.3 | 80.0 | 51.6 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/listener/BulkOperationListenerTest.java | 50.0 | 40.0 | 44.7 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/listener/BulkOperationListener.java | 16.7 | 100.0 | 40.8 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/step/StepBulkOperationConfig.java | 16.7 | 100.0 | 40.8 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/util/PaginationUtil.java | 16.7 | 100.0 | 40.8 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/listener/InboxCleanupListener.java | 16.7 | 80.0 | 36.5 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/mapper/CommonMapper.java | 33.3 | 40.0 | 36.5 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/mapper/PostSingleInboxRetrievalMapper.java | 33.3 | 40.0 | 36.5 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/BulkOperationBatchService.java | 16.7 | 80.0 | 36.5 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/PostInternalInboxSendService.java | 33.3 | 40.0 | 36.5 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/scheduler/InboxCleanupScheduler.java | 16.7 | 40.0 | 25.8 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/step/StepInboxCleanupConfig.java | 16.7 | 40.0 | 25.8 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/InboxApplication.java | 33.3 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/adaptor/EntitlementAdaptor.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/adaptor/EntitlementAdaptorProperties.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/job/BulkOperationJobConfig.java | 33.3 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/job/InboxCleanupJobConfig.java | 33.3 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/step/FlowBulkOperationConfig.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/batch/step/FlowInboxCleanupConfig.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/component/AppConfigCredential.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/config/InboxConfig.java | 33.3 | 0.0 | 0.0 | 2 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/controller/InboxController.java | 100.0 | 0.0 | 0.0 | 9 | 4 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/mapper/PostInboxRetrievalMapper.java | 50.0 | 0.0 | 0.0 | 3 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/model/dto/InboxBatchJobRequest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/model/entity/UserInboxLocalizedMessageEntity.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/model/entity/UserInboxMessageEntity.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/model/enums/CategoryEnum.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/model/projection/PostInboxRetrievalProjection.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/properties/BatchProperties.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/properties/BulkOperationProperties.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/properties/InboxConfigProperties.java | 0.0 | 0.0 | 0.0 | 0 | 0 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/repository/UserInboxLocalizedMessageRepository.java | 66.7 | 0.0 | 0.0 | 4 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/repository/UserInboxMessageRepository.java | 100.0 | 0.0 | 0.0 | 11 | 3 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/GetInboxCountService.java | 33.3 | 0.0 | 0.0 | 2 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxRetrievalService.java | 50.0 | 0.0 | 0.0 | 3 | 2 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/PostSingleInboxRetrievalService.java | 50.0 | 0.0 | 0.0 | 3 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/service/package-info.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/main/java/jp/co/smbc/gcms/channel/inbox/util/Constants.java | 100.0 | 0.0 | 0.0 | 8 | 4 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/adaptor/EntitlementAdaptorTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/job/BulkOperationJobConfigTest.java | 50.0 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/job/InboxCleanupJobConfigTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/listener/InboxCleanupListenerTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/step/FlowBulkOperationConfigTest.java | 33.3 | 0.0 | 0.0 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/step/FlowInboxCleanupConfigTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/step/StepBulkOperationConfigTest.java | 50.0 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/batch/step/StepInboxCleanupConfigTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/config/InboxConfigTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/controller/InboxControllerTest.java | 100.0 | 0.0 | 0.0 | 7 | 4 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/mapper/CommonMapperTest.java | 33.3 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/BulkOperationBatchServiceTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/GetInboxCountServiceTest.java | 16.7 | 0.0 | 0.0 | 1 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxBulkProcessServiceTest.java | 33.3 | 0.0 | 0.0 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxDeleteServiceTest.java | 83.3 | 0.0 | 0.0 | 5 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxReadServiceTest.java | 50.0 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/PostInboxRetrievalServiceTest.java | 50.0 | 0.0 | 0.0 | 3 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/PostInternalInboxSendServiceTest.java | 33.3 | 0.0 | 0.0 | 2 | 2 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/service/PostSingleInboxRetrievalServiceTest.java | 33.3 | 0.0 | 0.0 | 2 | 1 |
+| src/test/java/jp/co/smbc/gcms/channel/inbox/util/PaginationUtilTest.java | 33.3 | 0.0 | 0.0 | 2 | 1 |
