@@ -1,3 +1,4 @@
 lizard>=1.16.0
 matplotlib>=3.7.0
 plotly>=5.15.0
+pytest>=7.0.0
