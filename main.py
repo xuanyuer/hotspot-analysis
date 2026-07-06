@@ -17,6 +17,7 @@ from report.html_report import write_html_report
 from report.aggregate import build_run_result, write_combined_csv, write_combined_markdown
 from report.consolidated import write_consolidated_html
 from config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
+from git_analyzer.repo_list import parse_repo_list
 
 
 def detect_main_branch(repo_path: Path) -> str:
@@ -177,24 +178,23 @@ def main():
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    repos = []
+    # Build list of (repo_path, include, exclude) tuples
+    repo_tasks = []
     if args.repo:
-        repos.append(Path(args.repo))
+        repo_tasks.append((Path(args.repo), args.include or [], args.exclude or []))
     if args.repo_list:
-        with open(args.repo_list) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    repos.append(Path(line))
+        entries = parse_repo_list(args.repo_list, args.include or [], args.exclude or [])
+        for entry in entries:
+            repo_tasks.append((entry.path, entry.include_patterns, entry.exclude_patterns))
 
     results = []
     failed_repos = []
     fatal_error = False
 
-    for repo in repos:
-        print(f"\nAnalyzing: {repo}")
+    for repo_path, include, exclude in repo_tasks:
+        print(f"\nAnalyzing: {repo_path}")
         try:
-            ranked = run_analysis(repo, args.include or [], args.exclude or [],
+            ranked = run_analysis(repo_path, include, exclude,
                                   args.since, output_dir, args.hotspot_percentile)
             if ranked:
                 results.append(ranked)
@@ -202,10 +202,10 @@ def main():
             raise
         except Exception as e:
             print(f"  ERROR: {e}")
-            failed_repos.append(str(repo))
+            failed_repos.append(str(repo_path))
 
     # Write cross-repo combined reports (when multiple repos)
-    if len(repos) > 1:
+    if len(repo_tasks) > 1:
         combined_dir = output_dir / "combined"
         combined_dir.mkdir(parents=True, exist_ok=True)
         run = build_run_result(results, failed_repos)
