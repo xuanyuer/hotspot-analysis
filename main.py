@@ -14,6 +14,8 @@ from models.data import FileInfo
 from report.tables import write_csv_report, write_markdown_report
 from report.png_report import write_png_scatter
 from report.html_report import write_html_report
+from report.aggregate import build_run_result, write_combined_csv, write_combined_markdown
+from report.consolidated import write_consolidated_html
 from config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
 
 
@@ -53,8 +55,8 @@ def detect_language(repo_path: Path) -> str:
 
 
 def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
-                 since: str, output_dir: Path, percentile: float) -> None:
-    """Run the full analysis pipeline for a single repo."""
+                 since: str, output_dir: Path, percentile: float) -> RankedResult:
+    """Run the full analysis pipeline for a single repo. Returns RankedResult."""
     main_branch = detect_main_branch(repo_path)
     repo_name = repo_path.name
     lang = detect_language(repo_path)
@@ -71,7 +73,7 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
 
     if not files:
         print(f"  No files to analyze. Skipping.")
-        return
+        return RankedResult(repo_name=repo_name)
 
     # 2. Compute churn
     print(f"  Computing churn from git history...")
@@ -137,6 +139,9 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
     write_html_report(result, str(html_path))
     print(f"  Written: {html_path}")
 
+    # Set repo name
+    result.repo_name = repo_name
+
     # Summary
     print(f"\n  Summary:")
     print(f"    Total files: {result.total_files}")
@@ -146,6 +151,8 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
         print(f"\n  Top 5 hotspots:")
         for f in result.hotspot_files[:5]:
             print(f"    {f.path} (score: {f.hotspot_score:.1f})")
+
+    return result
 
 
 
@@ -180,14 +187,51 @@ def main():
                 if line and not line.startswith("#"):
                     repos.append(Path(line))
 
+    results = []
+    failed_repos = []
+    fatal_error = False
+
     for repo in repos:
         print(f"\nAnalyzing: {repo}")
         try:
-            run_analysis(repo, args.include or [], args.exclude or [],
-                        args.since, output_dir, args.hotspot_percentile)
+            ranked = run_analysis(repo, args.include or [], args.exclude or [],
+                                  args.since, output_dir, args.hotspot_percentile)
+            if ranked:
+                results.append(ranked)
+        except SystemExit:
+            raise
         except Exception as e:
             print(f"  ERROR: {e}")
-            sys.exit(1)
+            failed_repos.append(str(repo))
+
+    # Write cross-repo combined reports (when multiple repos)
+    if len(repos) > 1:
+        combined_dir = output_dir / "combined"
+        combined_dir.mkdir(parents=True, exist_ok=True)
+        run = build_run_result(results, failed_repos)
+
+        combined_csv = combined_dir / "combined.csv"
+        write_combined_csv(run, str(combined_csv))
+        print(f"\n  Written combined: {combined_csv}")
+
+        combined_md = combined_dir / "combined.md"
+        write_combined_markdown(run, str(combined_md))
+        print(f"  Written combined: {combined_md}")
+
+        # Consolidated HTML report
+        consolidated_html = combined_dir / "consolidated.html"
+        write_consolidated_html(run, str(consolidated_html))
+        print(f"  Written combined: {consolidated_html}")
+
+        print(f"\n  Run summary: {run.total_repos} repos, {run.total_files} files, {run.total_hotspots} hotspots")
+        if failed_repos:
+            print(f"  Failed repos: {', '.join(failed_repos)}")
+
+    # Exit code: 0 = all success, 1 = some failures, 2 = fatal error
+    if fatal_error:
+        sys.exit(2)
+    elif failed_repos:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

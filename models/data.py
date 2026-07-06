@@ -16,9 +16,20 @@ class FileInfo:
 
 @dataclass
 class RankedResult:
-    all_files: list[FileInfo]
-    hotspot_files: list[FileInfo]
-    total_files: int
-    hotspot_count: int
-    hotspot_ratio: float
-    hotspot_percentile: float
+    repo_name: str = ""
+    all_files: list[FileInfo] = field(default_factory=list)
+    hotspot_files: list[FileInfo] = field(default_factory=list)
+    total_files: int = 0
+    hotspot_count: int = 0
+    hotspot_ratio: float = 0.0
+    hotspot_percentile: float = 75.0
+
+
+@dataclass
+class RunResult:
+    """Cross-repo aggregate result."""
+    repos: list[RankedResult]
+    total_repos: int = 0
+    total_files: int = 0
+    total_hotspots: int = 0
+    failed_repos: list[str] = field(default_factory=list)
