@@ -48,8 +48,8 @@ def compute_churn(repo_path: str, main_branch: str, files: list[str]) -> dict:
                             if pair not in seen:
                                 seen.add(pair)
                                 stats[filepath]["commit_count"] += 1
-                                stats[filepath]["lines_added"] += int(added)
-                                stats[filepath]["lines_removed"] += int(removed)
+                                stats[filepath]["lines_added"] += int(added) if added != "-" else 0
+                                stats[filepath]["lines_removed"] += int(removed) if removed != "-" else 0
                                 stats[filepath]["authors"].add(author_name)
                 i += 1
         else:

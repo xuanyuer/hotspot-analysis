@@ -14,6 +14,7 @@ from models.data import FileInfo
 from report.tables import write_csv_report, write_markdown_report
 from report.png_report import write_png_scatter
 from report.html_report import write_html_report
+from config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
 
 
 def detect_main_branch(repo_path: Path) -> str:
@@ -30,15 +31,42 @@ def detect_main_branch(repo_path: Path) -> str:
     return "main"  # final fallback
 
 
+def detect_language(repo_path: Path) -> str:
+    """Detect primary language from file extensions in the repo."""
+    import subprocess
+    result = subprocess.run(
+        ["git", "-C", str(repo_path), "ls-files"],
+        capture_output=True, text=True, check=True,
+    )
+    extensions = {}
+    for f in result.stdout.strip().split("\n"):
+        if f:
+            ext = f.rsplit(".", 1)[-1] if "." in f else ""
+            extensions[ext] = extensions.get(ext, 0) + 1
+    if extensions.get("java", 0) > 0 or extensions.get("class", 0) > 0:
+        return "java"
+    if extensions.get("py", 0) > 0:
+        return "python"
+    if extensions.get("js", 0) > 0 or extensions.get("ts", 0) > 0:
+        return "js"
+    return "default"
+
+
 def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
                  since: str, output_dir: Path, percentile: float) -> None:
     """Run the full analysis pipeline for a single repo."""
     main_branch = detect_main_branch(repo_path)
     repo_name = repo_path.name
+    lang = detect_language(repo_path)
+
+    # Merge default excludes with user excludes
+    lang_excludes = EXCLUDE_DEFAULTS.get(lang, EXCLUDE_DEFAULTS["default"])
+    default_excludes = EXCLUDE_DEFAULTS.get("default", [])
+    all_excludes = list(set(lang_excludes + default_excludes + exclude))
 
     # 1. Fetch files
-    print(f"  Fetching files from {repo_path}...")
-    files = fetch_files(repo_path, main_branch, include, exclude)
+    print(f"  Fetching files from {repo_path}... (lang={lang})")
+    files = fetch_files(repo_path, main_branch, include, all_excludes)
     print(f"  Found {len(files)} files")
 
     if not files:
