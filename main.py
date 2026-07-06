@@ -11,6 +11,7 @@ from scorer.normalize import normalize_churn, normalize_complexity
 from scorer.aggregate import compute_hotspot_score
 from scorer.rank import rank_files
 from models.data import FileInfo
+from report.tables import write_csv_report, write_markdown_report
 
 
 def detect_main_branch(repo_path: Path) -> str:
@@ -88,12 +89,12 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
 
     # Write CSV
     csv_path = repo_output / "ranked.csv"
-    write_csv(result, str(csv_path))
+    write_csv_report(result, str(csv_path))
     print(f"  Written: {csv_path}")
 
     # Write Markdown
     md_path = repo_output / "ranked.md"
-    write_markdown(result, str(md_path))
+    write_markdown_report(result, str(md_path))
     print(f"  Written: {md_path}")
 
     # Summary
@@ -107,23 +108,7 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
             print(f"    {f.path} (score: {f.hotspot_score:.1f})")
 
 
-def write_csv(result, output_path: str) -> None:
-    """Write ranked CSV (all files)."""
-    with open(output_path, "w") as fh:
-        fh.write("file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count\n")
-        for fi in result.all_files:
-            fh.write(f"{fi.path},{fi.churn_score:.2f},{fi.complexity_score:.2f},{fi.hotspot_score:.2f},{fi.commit_count},{fi.lines_added},{fi.lines_removed},{fi.author_count}\n")
 
-
-def write_markdown(result, output_path: str) -> None:
-    """Write ranked Markdown table."""
-    with open(output_path, "w") as fh:
-        fh.write("# Hotspot Analysis Report\n\n")
-        fh.write(f"**Total files:** {result.total_files} | **Hotspots:** {result.hotspot_count} ({result.hotspot_ratio:.0%})\n\n")
-        fh.write("| File | Churn | Complexity | Hotspot | Commits | Authors |\n")
-        fh.write("|------|-------|------------|---------|---------|---------|\n")
-        for fi in result.all_files:
-            fh.write(f"| {fi.path} | {fi.churn_score:.1f} | {fi.complexity_score:.1f} | {fi.hotspot_score:.1f} | {fi.commit_count} | {fi.author_count} |\n")
 
 
 def main():
