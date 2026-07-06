@@ -8,6 +8,7 @@ from pathlib import Path
 from models.data import FileInfo, RankedResult
 from report.tables import write_csv_report, write_markdown_report
 from report.png_report import write_png_scatter
+from report.html_report import write_html_report
 
 
 def _make_file(path: str, churn: float, complexity: float,
@@ -166,3 +167,46 @@ class TestWritePngScatter:
 
         assert png_path.exists()
         assert png_path.stat().st_size > 0
+
+
+class TestWriteHtmlReport:
+    def test_creates_html_file(self):
+        files = [
+            _make_file("a.java", 10.0, 20.0, 15.0),
+            _make_file("b.java", 50.0, 80.0, 65.0),
+            _make_file("c.java", 90.0, 95.0, 92.0),
+        ]
+        result = RankedResult(
+            all_files=sorted(files, key=lambda f: f.hotspot_score, reverse=True),
+            hotspot_files=[],
+            total_files=3, hotspot_count=0, hotspot_ratio=0.0,
+            hotspot_percentile=75,
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            html_path = Path(f.name)
+
+        write_html_report(result, str(html_path))
+
+        assert html_path.exists()
+        assert html_path.stat().st_size > 500
+        content = html_path.read_text()
+        assert "Hotspot Analysis" in content
+        assert "a.java" in content
+        assert "b.java" in content
+        assert "c.java" in content
+
+    def test_empty_result(self):
+        result = RankedResult(
+            all_files=[], hotspot_files=[],
+            total_files=0, hotspot_count=0, hotspot_ratio=0.0,
+            hotspot_percentile=75,
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            html_path = Path(f.name)
+
+        write_html_report(result, str(html_path))
+
+        assert html_path.exists()
+        assert html_path.stat().st_size > 0

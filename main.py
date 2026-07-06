@@ -13,6 +13,7 @@ from scorer.rank import rank_files
 from models.data import FileInfo
 from report.tables import write_csv_report, write_markdown_report
 from report.png_report import write_png_scatter
+from report.html_report import write_html_report
 
 
 def detect_main_branch(repo_path: Path) -> str:
@@ -102,6 +103,11 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
     png_path = repo_output / "scatter.png"
     write_png_scatter(result, str(png_path))
     print(f"  Written: {png_path}")
+
+    # Write HTML interactive report
+    html_path = repo_output / "report.html"
+    write_html_report(result, str(html_path))
+    print(f"  Written: {html_path}")
 
     # Summary
     print(f"\n  Summary:")
