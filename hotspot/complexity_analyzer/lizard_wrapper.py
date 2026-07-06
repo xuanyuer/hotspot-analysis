@@ -96,12 +96,18 @@ def compute_complexity(repo_path: str, files: list[str]) -> dict:
     # Aggregate to file level
     result_data = {}
     for filepath, ccns in file_ccns.items():
-        abs_path = os.path.abspath(filepath)
-        # Extract relative path
-        if abs_path.startswith(repo_abs):
-            rel_path = os.path.relpath(abs_path, repo_abs)
+        # Resolve path relative to repo_path (since lizard was run with cwd=repo_path)
+        if os.path.isabs(filepath):
+            abs_path = os.path.abspath(filepath)
+            if abs_path.startswith(repo_abs):
+                rel_path = os.path.relpath(abs_path, repo_abs)
+            else:
+                rel_path = os.path.basename(filepath)
         else:
-            rel_path = os.path.basename(filepath)
+            # Lizard output relative paths — resolve from repo_path
+            rel_path = os.path.relpath(
+                os.path.join(repo_path, filepath), repo_abs
+            )
 
         # Compute file_length from line count
         full_path = os.path.join(repo_abs, rel_path)

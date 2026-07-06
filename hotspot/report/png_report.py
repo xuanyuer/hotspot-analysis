@@ -31,9 +31,9 @@ def write_png_scatter(result, output_path: str) -> None:
 
     # Split into hotspot (top-right) and others
     hotspot_churns = [c for c, f in zip(churns, files) if c >= median_churn and f.complexity_score >= median_complexity]
-    hotspot_complexities = [c for c, f in zip(complexities, files) if c >= median_churn and f.complexity_score >= median_complexity]
+    hotspot_complexities = [c for c, f in zip(complexities, files) if f.churn_score >= median_churn and c >= median_complexity]
     other_churns = [c for c, f in zip(churns, files) if not (c >= median_churn and f.complexity_score >= median_complexity)]
-    other_complexities = [c for c, f in zip(complexities, files) if not (c >= median_churn and f.complexity_score >= median_complexity)]
+    other_complexities = [c for c, f in zip(complexities, files) if not (f.churn_score >= median_churn and c >= median_complexity)]
 
     fig, ax = plt.subplots(figsize=(10, 7))
 
