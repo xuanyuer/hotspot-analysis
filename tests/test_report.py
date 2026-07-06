@@ -1,11 +1,13 @@
 """Tests for report/table generation."""
 
 import csv
+import os
 import tempfile
 from pathlib import Path
 
 from models.data import FileInfo, RankedResult
 from report.tables import write_csv_report, write_markdown_report
+from report.png_report import write_png_scatter
 
 
 def _make_file(path: str, churn: float, complexity: float,
@@ -126,3 +128,41 @@ class TestWriteMarkdownReport:
         assert "# Hotspot Analysis Report" in content
         assert "**Total files:** 0" in content
         assert "simple" not in content
+
+
+class TestWritePngScatter:
+    def test_creates_png_file(self):
+        files = [
+            _make_file("a.java", 10.0, 20.0, 15.0),
+            _make_file("b.java", 50.0, 80.0, 65.0),
+            _make_file("c.java", 90.0, 95.0, 92.0),
+        ]
+        result = RankedResult(
+            all_files=sorted(files, key=lambda f: f.hotspot_score, reverse=True),
+            hotspot_files=[],
+            total_files=3, hotspot_count=0, hotspot_ratio=0.0,
+            hotspot_percentile=75,
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            png_path = Path(f.name)
+
+        write_png_scatter(result, str(png_path))
+
+        assert png_path.exists()
+        assert png_path.stat().st_size > 100  # not empty
+
+    def test_empty_result_no_plot(self):
+        result = RankedResult(
+            all_files=[], hotspot_files=[],
+            total_files=0, hotspot_count=0, hotspot_ratio=0.0,
+            hotspot_percentile=75,
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            png_path = Path(f.name)
+
+        write_png_scatter(result, str(png_path))
+
+        assert png_path.exists()
+        assert png_path.stat().st_size > 0

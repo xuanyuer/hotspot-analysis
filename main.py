@@ -12,6 +12,7 @@ from scorer.aggregate import compute_hotspot_score
 from scorer.rank import rank_files
 from models.data import FileInfo
 from report.tables import write_csv_report, write_markdown_report
+from report.png_report import write_png_scatter
 
 
 def detect_main_branch(repo_path: Path) -> str:
@@ -96,6 +97,11 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
     md_path = repo_output / "ranked.md"
     write_markdown_report(result, str(md_path))
     print(f"  Written: {md_path}")
+
+    # Write PNG scatter plot
+    png_path = repo_output / "scatter.png"
+    write_png_scatter(result, str(png_path))
+    print(f"  Written: {png_path}")
 
     # Summary
     print(f"\n  Summary:")
