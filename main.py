@@ -17,7 +17,7 @@ from report.html_report import write_html_report
 from report.aggregate import build_run_result, write_combined_csv, write_combined_markdown
 from report.consolidated import write_consolidated_html
 from config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
-from git_analyzer.repo_list import parse_repo_list
+from git_analyzer.repo_list import parse_config
 
 
 def detect_main_branch(repo_path: Path) -> str:
@@ -171,9 +171,14 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.repo and not args.repo_list:
-        print("Error: specify --repo or --repo-list")
-        sys.exit(1)
+    # Auto-discover repos.yaml or use --repo-list flag
+    config_path = args.repo_list
+    if not args.repo and not config_path:
+        try:
+            config_path = str(Path.cwd() / "repos.yaml")
+        except Exception:
+            print("Error: specify --repo or --repo-list, or provide a repos.yaml file")
+            sys.exit(1)
 
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -182,10 +187,14 @@ def main():
     repo_tasks = []
     if args.repo:
         repo_tasks.append((Path(args.repo), args.include or [], args.exclude or []))
-    if args.repo_list:
-        entries = parse_repo_list(args.repo_list, args.include or [], args.exclude or [])
-        for entry in entries:
-            repo_tasks.append((entry.path, entry.include_patterns, entry.exclude_patterns))
+    if config_path:
+        try:
+            entries = parse_config(config_path)
+            for entry in entries:
+                repo_tasks.append((entry.path, entry.include_patterns, entry.exclude_patterns))
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            sys.exit(2)
 
     results = []
     failed_repos = []

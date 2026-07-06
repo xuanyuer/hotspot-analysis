@@ -1,68 +1,53 @@
-"""Parse repo-list file with per-repo include/exclude patterns."""
+"""Parse repos.yaml config file with global defaults and per-repo overrides."""
 
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 
 @dataclass(frozen=True)
 class RepoEntry:
-    """A single repo entry with optional per-repo filters."""
+    """A single repo entry with include/exclude patterns."""
     path: Path
     include_patterns: list[str]
     exclude_patterns: list[str]
 
 
-def parse_repo_list(repo_list_path: str, global_include: list[str], global_exclude: list[str]) -> list[RepoEntry]:
-    """Parse a repo list file.
+def parse_config(config_path: str | None = None) -> list[RepoEntry]:
+    """Parse repos.yaml config file.
 
-    Format: one repo path per line, optional inline patterns:
-        # comment
-        /path/to/repo
-        /path/to/repo include:*.java exclude:build/*
-        /path/to/repo include:*.js include:*.ts exclude:test/*
+    If config_path is None, auto-discovers repos.yaml in the current working directory.
 
-    Per-repo patterns override global --include/--exclude.
-    If per-repo has include/exclude lists, they replace (not merge with) global.
+    Returns RepoEntry list with per-repo overrides applied.
     """
+    if config_path is None:
+        config_path = str(Path.cwd() / "repos.yaml")
+
+    with open(config_path) as f:
+        data = yaml.safe_load(f)
+
+    if data is None:
+        data = {}
+
+    global_include = data.get("global", {}).get("include", [])
+    global_exclude = data.get("global", {}).get("exclude", [])
+
+    repos = data.get("repos", {}) or {}
+
     entries = []
-    with open(repo_list_path) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
+    for repo_path, overrides in repos.items():
+        path = Path(repo_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Repo path does not exist: {repo_path}")
 
-            # Parse inline patterns
-            parts = line.split()
-            repo_path = Path(parts[0])
-            include = []
-            exclude = []
+        include = overrides.get("include", global_include) if overrides else global_include
+        exclude = overrides.get("exclude", global_exclude) if overrides else global_exclude
 
-            i = 1
-            while i < len(parts):
-                token = parts[i]
-                if token.startswith("include:"):
-                    include.append(token[len("include:"):])
-                elif token.startswith("exclude:"):
-                    exclude.append(token[len("exclude:"):])
-                else:
-                    # Unknown token — ignore silently
-                    pass
-                i += 1
-
-            # Determine final include/exclude:
-            # - If per-repo has any patterns, use them exclusively (override global)
-            # - If per-repo has no patterns, fall back to global
-            if include or exclude:
-                final_include = include if include else global_include
-                final_exclude = exclude if exclude else global_exclude
-            else:
-                final_include = global_include
-                final_exclude = global_exclude
-
-            entries.append(RepoEntry(
-                path=repo_path,
-                include_patterns=final_include,
-                exclude_patterns=final_exclude,
-            ))
+        entries.append(RepoEntry(
+            path=path,
+            include_patterns=include or [],
+            exclude_patterns=exclude or [],
+        ))
 
     return entries

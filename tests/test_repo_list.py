@@ -1,82 +1,129 @@
-"""Tests for repo-list parsing with per-repo patterns."""
+"""Tests for YAML config file parsing."""
 
 import tempfile
 from pathlib import Path
 
-from git_analyzer.repo_list import parse_repo_list, RepoEntry
+import pytest
+
+from git_analyzer.repo_list import parse_config, RepoEntry
 
 
-def _write_repo_list(content: str) -> str:
-    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
+def _write_yaml(content: str) -> str:
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False)
     tmp.write(content)
     tmp.close()
     return tmp.name
 
 
-class TestParseRepoList:
-    def test_simple_paths(self):
-        path = _write_repo_list("/path/a\n/path/b\n")
-        entries = parse_repo_list(path, [], [])
+class TestParseConfig:
+    def test_parse_global_defaults(self, tmp_path: Path):
+        (tmp_path / "repo_a").mkdir()
+        (tmp_path / "repo_b").mkdir()
+
+        config = _write_yaml(f"""global:
+  include: ["*.java", "*.kt"]
+  exclude: ["target/*", "build/*"]
+repos:
+  {tmp_path / 'repo_a'}:
+  {tmp_path / 'repo_b'}:
+""")
+        entries = parse_config(config)
 
         assert len(entries) == 2
-        assert entries[0].path == Path("/path/a")
-        assert entries[0].include_patterns == []
-        assert entries[1].path == Path("/path/b")
-
-    def test_comments_and_empty_lines(self):
-        path = _write_repo_list("# comment\n\n/path/a\n\n# another\n/path/b\n")
-        entries = parse_repo_list(path, [], [])
-
-        assert len(entries) == 2
-        assert entries[0].path == Path("/path/a")
-        assert entries[1].path == Path("/path/b")
-
-    def test_per_repo_include_override_global(self):
-        path = _write_repo_list("/path/a include:*.java include:*.kt\n/path/b\n")
-        entries = parse_repo_list(path, ["*.py"], [])
-
+        assert entries[0].path == tmp_path / "repo_a"
         assert entries[0].include_patterns == ["*.java", "*.kt"]
-        assert entries[1].include_patterns == ["*.py"]  # falls back to global
+        assert entries[0].exclude_patterns == ["target/*", "build/*"]
+        assert entries[1].path == tmp_path / "repo_b"
+        assert entries[1].include_patterns == ["*.java", "*.kt"]
+        assert entries[1].exclude_patterns == ["target/*", "build/*"]
 
-    def test_per_repo_exclude_override_global(self):
-        path = _write_repo_list("/path/a exclude:build/* exclude:gen/*\n/path/b\n")
-        entries = parse_repo_list(path, [], ["*.pyc"])
+    def test_per_repo_override_replaces_global(self, tmp_path: Path):
+        (tmp_path / "repo_a").mkdir()
+        (tmp_path / "repo_b").mkdir()
 
-        assert entries[0].exclude_patterns == ["build/*", "gen/*"]
-        assert entries[1].exclude_patterns == ["*.pyc"]
+        config = _write_yaml(f"""global:
+  include: ["*.java", "*.kt"]
+  exclude: ["target/*"]
+repos:
+  {tmp_path / 'repo_a'}:
+    include: ["*.js", "*.ts"]
+    exclude: ["node_modules/*"]
+  {tmp_path / 'repo_b'}:
+""")
+        entries = parse_config(config)
 
-    def test_per_repo_include_replaces_global_include(self):
-        path = _write_repo_list("/path/a include:*.java\n")
-        entries = parse_repo_list(path, ["*.py", "*.kt"], [])
+        # /path/a overrides replace global — not merged
+        assert entries[0].include_patterns == ["*.js", "*.ts"]
+        assert entries[0].exclude_patterns == ["node_modules/*"]
+        # /path/b inherits global
+        assert entries[1].include_patterns == ["*.java", "*.kt"]
+        assert entries[1].exclude_patterns == ["target/*"]
 
-        # Per-repo include replaces global, not merges
+    def test_missing_repo_path_raises_error(self):
+        path = _write_yaml("""global:
+  include: ["*.java"]
+repos:
+  /nonexistent/repo:
+""")
+        with pytest.raises(FileNotFoundError) as exc_info:
+            parse_config(path)
+
+        assert "/nonexistent/repo" in str(exc_info.value)
+
+    def test_comments_ignored(self, tmp_path: Path):
+        (tmp_path / "repo").mkdir()
+
+        config = _write_yaml(f"""# This is a comment
+# Another comment
+global:
+  include: ["*.java"]
+  exclude: ["target/*"]
+# Comment between sections
+repos:
+  # Comment before entry
+  {tmp_path / 'repo'}:
+    # Comment before override
+    include: ["*.kt"]
+""")
+        entries = parse_config(config)
+
+        assert len(entries) == 1
+        assert entries[0].include_patterns == ["*.kt"]
+        assert entries[0].exclude_patterns == ["target/*"]
+
+    def test_repo_order_preserved(self, tmp_path: Path):
+        (tmp_path / "aaa").mkdir()
+        (tmp_path / "zzz").mkdir()
+        (tmp_path / "mmm").mkdir()
+
+        config = _write_yaml(f"""repos:
+  {tmp_path / 'zzz'}:
+  {tmp_path / 'aaa'}:
+  {tmp_path / 'mmm'}:
+""")
+        entries = parse_config(config)
+
+        assert [e.path.name for e in entries] == ["zzz", "aaa", "mmm"]
+
+    def test_auto_discover_repos_yaml(self, tmp_path: Path, monkeypatch):
+        (tmp_path / "repo").mkdir()
+        (tmp_path / "repos.yaml").write_text(f"""global:
+  include: ["*.java"]
+repos:
+  {tmp_path / 'repo'}:
+""")
+
+        monkeypatch.chdir(tmp_path)
+        entries = parse_config()
+
+        assert len(entries) == 1
         assert entries[0].include_patterns == ["*.java"]
-        assert "*.py" not in entries[0].include_patterns
 
-    def test_per_repo_empty_exclude_keeps_global_exclude(self):
-        path = _write_repo_list("/path/a include:*.java\n")
-        entries = parse_repo_list(path, [], ["*.pyc"])
+    def test_empty_repos_section(self):
+        path = _write_yaml("""global:
+  include: ["*.java"]
+repos: {}
+""")
+        entries = parse_config(path)
 
-        assert entries[0].include_patterns == ["*.java"]
-        assert entries[0].exclude_patterns == ["*.pyc"]  # global kept
-
-    def test_multiple_inline_patterns_same_line(self):
-        path = _write_repo_list("/path/a include:*.java include:*.kt exclude:build/* exclude:gen/*\n")
-        entries = parse_repo_list(path, [], [])
-
-        assert entries[0].include_patterns == ["*.java", "*.kt"]
-        assert entries[0].exclude_patterns == ["build/*", "gen/*"]
-
-    def test_global_patterns_for_no_per_repo(self):
-        path = _write_repo_list("/path/a\n/path/b\n")
-        entries = parse_repo_list(path, ["include:*.java"], ["exclude:build/*"])
-
-        assert entries[0].include_patterns == ["include:*.java"]
-        assert entries[0].exclude_patterns == ["exclude:build/*"]
-
-    def test_unknown_token_ignored(self):
-        path = _write_repo_list("/path/a include:*.java unknown_token exclude:build/*\n")
-        entries = parse_repo_list(path, [], [])
-
-        assert entries[0].include_patterns == ["*.java"]
-        assert entries[0].exclude_patterns == ["build/*"]
+        assert len(entries) == 0

@@ -35,3 +35,15 @@ _Avoid_: Language, framework, tech stack
 **Normalization score**:
 A file's raw metric value rescaled to 0-100 within a repo using IQR-aware min-max scaling. Outliers beyond IQR boundaries are capped before scaling.
 _Avoid_: Score, normalized value, score
+
+**Config file**:
+A YAML file (default: `repos.yaml`) that defines global include/exclude patterns and per-repo overrides. Each repo maps to an optional set of include and exclude globs that replace global defaults.
+_Avoid_: Repo list, filter file, settings file
+
+**Global defaults**:
+The include/exclude patterns defined at the top level of the config file, applied to every repo unless a per-repo override exists.
+_Avoid_: Defaults, base filters, common patterns
+
+**Per-repo override**:
+When a repo's include/exclude replaces global defaults entirely (not merged). If a repo has no override, it inherits global defaults.
+_Avoid_: Repo filter, repo pattern, local exclude
