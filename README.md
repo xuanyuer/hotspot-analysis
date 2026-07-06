@@ -55,7 +55,7 @@ Then run:
 python3 -m hotspot
 ```
 
-Output is written to `./hotspot-output/<repo-name>/`:
+Output is written to `./hotspot-report/<repo-name>/`:
 - `ranked.csv` — ranked table with all scores
 - `ranked.md` — Markdown formatted report
 - `scatter.png` — static matplotlib scatter plot
@@ -69,7 +69,7 @@ python3 -m hotspot --repo-list /custom/path/config.yaml
 
 Output structure:
 ```
-hotspot-output/
+hotspot-report/
 ├── service-a/
 │   ├── ranked.csv
 │   ├── ranked.md
@@ -98,7 +98,7 @@ usage: hotspot [-h] [--repo-list REPO_LIST] [--since SINCE] [--output OUTPUT]
 |------|-------------|---------|
 | `--repo-list` | Path to repos.yaml (defaults to `./repos.yaml` in current directory) | |
 | `--since` | Time window for churn (e.g., `6months`, `2years`) | full history |
-| `--output` | Output directory | `./hotspot-output` |
+| `--output` | Output directory | `./hotspot-report` |
 | `--hotspot-percentile` | Percentile threshold for hotspot zone | 75 |
 
 ### Config File Format

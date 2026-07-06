@@ -164,7 +164,7 @@ def main():
     parser.add_argument("--repo-list", type=str, default=None,
                        help="Path to repos.yaml (defaults to ./repos.yaml in current directory)")
     parser.add_argument("--since", type=str, default="full", help="Time window for churn analysis (e.g., 6months)")
-    parser.add_argument("--output", type=str, default="./hotspot-output", help="Output directory")
+    parser.add_argument("--output", type=str, default="./hotspot-report", help="Output directory")
     parser.add_argument("--hotspot-percentile", type=float, default=75, help="Percentile threshold for hotspots")
 
     args = parser.parse_args()
@@ -207,15 +207,13 @@ def main():
             print(f"  ERROR: {e}")
             failed_repos.append(str(repo_path))
 
-    # Write consolidated summary (when multiple repos)
+    # Write consolidated index (when multiple repos)
     if len(repo_tasks) > 1:
-        combined_dir = output_dir / "combined"
-        combined_dir.mkdir(parents=True, exist_ok=True)
         run = build_run_result(results, failed_repos)
 
-        consolidated_html = combined_dir / "consolidated.html"
-        write_consolidated_html(run, str(consolidated_html))
-        print(f"\n  Written consolidated: {consolidated_html}")
+        index_html = output_dir / "index.html"
+        write_consolidated_html(run, str(index_html))
+        print(f"\n  Written index: {index_html}")
 
         print(f"\n  Run summary: {run.total_repos} repos, {run.total_files} files, {run.total_hotspots} hotspots")
         if failed_repos:
