@@ -4,5 +4,5 @@ __pycache__/
 .pytest_cache/
 .venv/
 output/
-hotspot-output/
+hotspot-report/
 repos.yaml
