@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 output/
 hotspot-output/
+repos.yaml
