@@ -1,9 +1,0 @@
-file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count
-scripts/Dev Tasks Completion Report.py,100.00,100.00,100.00,2,1396,2,1
-scripts/generate_epic_breakdown.py,100.00,79.81,89.34,3,617,9,1
-scripts/estimate_story_points.py,0.00,8.35,0.00,1,336,0,1
-scripts/generate_commit_details.py,0.00,16.71,0.00,1,253,0,1
-scripts/productivity_analysis.py,0.00,26.91,0.00,1,322,0,1
-scripts/refresh_and_view.py,0.00,8.35,0.00,1,195,0,1
-scripts/sonarqube_report.py,0.00,33.41,0.00,1,550,0,1
-scripts/start_dashboard.py,0.00,0.00,0.00,1,47,0,1

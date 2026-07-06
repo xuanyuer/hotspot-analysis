@@ -1,3 +1,0 @@
-file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count
-extract_gcms.py,100.00,100.00,100.00,3,254,2,1
-generate_html.py,0.00,0.00,0.00,1,536,0,1
