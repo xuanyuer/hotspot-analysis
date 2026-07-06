@@ -10,7 +10,8 @@ def write_html_report(result, output_path: str) -> None:
 
     churns = [f.churn_score for f in files]
     complexities = [f.complexity_score for f in files]
-    labels = [f.path for f in files]
+    # Use short labels (last 2 path components) for hover tooltips
+    labels = ["/".join(f.path.split("/")[-2:]) for f in files]
     hotspot_scores = [f.hotspot_score for f in files]
     commits = [f.commit_count for f in files]
 
@@ -33,7 +34,7 @@ def write_html_report(result, output_path: str) -> None:
     if other_labels:
         fig.add_trace(go.Scatter(
             x=other_churns, y=other_complexities,
-            mode="markers+text", text=other_labels, textposition="top center",
+            mode="markers", text=other_labels, hoverinfo="text",
             marker=dict(color="blue", size=10, opacity=0.6),
             name="Normal",
         ), row=1, col=1)
@@ -41,7 +42,7 @@ def write_html_report(result, output_path: str) -> None:
     if hotspot_labels:
         fig.add_trace(go.Scatter(
             x=hotspot_churns, y=hotspot_complexities,
-            mode="markers+text", text=hotspot_labels, textposition="top center",
+            mode="markers", text=hotspot_labels, hoverinfo="text",
             marker=dict(color="red", size=12, symbol="diamond"),
             name="Hotspot",
         ), row=1, col=1)
