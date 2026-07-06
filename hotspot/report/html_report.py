@@ -1,8 +1,6 @@
 """HTML interactive report generation using plotly."""
 
 import json
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 
 def write_html_report(result, output_path: str) -> None:
@@ -12,18 +10,72 @@ def write_html_report(result, output_path: str) -> None:
     churns = [f.churn_score for f in files]
     complexities = [f.complexity_score for f in files]
     labels = [f.path for f in files]
-    hotspot_scores = [f.hotspot_score for f in files]
-    commits = [f.commit_count for f in files]
 
     median_churn = sum(churns) / len(churns) if churns else 50
     median_complexity = sum(complexities) / len(complexities) if complexities else 50
 
     # Detect hotspot points
     is_hotspot = [c >= median_churn and cm >= median_complexity for c, cm in zip(churns, complexities)]
-    hotspot_churns = [c for c, h in zip(churns, is_hotspot) if h]
-    hotspot_complexities = [c for c, h in zip(complexities, is_hotspot) if h]
-    other_churns = [c for c, h in zip(churns, is_hotspot) if not h]
-    other_complexities = [c for c, h in zip(complexities, is_hotspot) if not h]
+
+    # Group points by (x, y) position to detect overlaps
+    from collections import defaultdict
+    position_groups = defaultdict(list)
+    for i, f in enumerate(files):
+        key = (churns[i], complexities[i])
+        position_groups[key].append(i)
+
+    # Build scatter data with jitter for overlapping points
+    jittered_x = []
+    jittered_y = []
+    jittered_texts = []
+    jittered_hotspot = []
+
+    for i, f in enumerate(files):
+        is_hs = is_hotspot[i]
+        x, y = churns[i], complexities[i]
+
+        group = position_groups[(x, y)]
+        if len(group) > 1:
+            idx_in_group = group.index(i)
+            total = len(group)
+            # Distribute points in a circle around center
+            import math
+            angle = (2 * math.pi * idx_in_group) / total
+            radius = 0.8
+            x += radius * math.cos(angle)
+            y += radius * math.sin(angle)
+
+        jittered_x.append(x)
+        jittered_y.append(y)
+        jittered_texts.append(f.path)
+        jittered_hotspot.append(is_hs)
+
+    # Build traces
+    traces = []
+
+    if any(not h for h in jittered_hotspot):
+        traces.append(json.dumps({
+            "type": "scatter",
+            "x": [x for x, m in zip(jittered_x, [not h for h in jittered_hotspot]) if m],
+            "y": [y for y, m in zip(jittered_y, [not h for h in jittered_hotspot]) if m],
+            "text": [t for t, m in zip(jittered_texts, [not h for h in jittered_hotspot]) if m],
+            "mode": "markers",
+            "hovertemplate": "%{text}<extra></extra>",
+            "name": "Normal",
+            "marker": {"color": "blue", "size": 10, "opacity": 0.6},
+        }))
+
+    if any(jittered_hotspot):
+        traces.append(json.dumps({
+            "type": "scatter",
+            "x": [x for x, m in zip(jittered_x, jittered_hotspot) if m],
+            "y": [y for y, m in zip(jittered_y, jittered_hotspot) if m],
+            "text": [t for t, m in zip(jittered_texts, jittered_hotspot) if m],
+            "mode": "markers",
+            "hovertemplate": "%{text}<extra></extra>",
+            "name": "Hotspot",
+            "marker": {"color": "red", "size": 12, "symbol": "diamond"},
+        }))
 
     # Build the simple ranked table HTML
     table_rows = ""
@@ -37,23 +89,6 @@ def write_html_report(result, output_path: str) -> None:
             f'<td>{f.hotspot_score:.1f}</td>'
             f'<td>{f.commit_count}</td>'
             f'<td>{f.author_count}</td></tr>\n')
-
-    # Build scatter traces JSON for Plotly.js
-    traces = []
-    if other_churns:
-        traces.append(json.dumps({
-            "type": "scatter", "x": other_churns, "y": other_complexities,
-            "mode": "markers", "text": [l for l, h in zip(labels, is_hotspot) if not h],
-            "hoverinfo": "text", "name": "Normal",
-            "marker": {"color": "blue", "size": 10, "opacity": 0.6},
-        }))
-    if hotspot_churns:
-        traces.append(json.dumps({
-            "type": "scatter", "x": hotspot_churns, "y": hotspot_complexities,
-            "mode": "markers", "text": [l for l, h in zip(labels, is_hotspot) if h],
-            "hoverinfo": "text", "name": "Hotspot",
-            "marker": {"color": "red", "size": 12, "symbol": "diamond"},
-        }))
 
     full_html = f"""<!DOCTYPE html>
 <html>
