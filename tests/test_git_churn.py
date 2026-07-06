@@ -1,9 +1,9 @@
 from unittest.mock import patch, MagicMock
-from git_analyzer.fetch_churn import compute_churn
+from hotspot.git_analyzer.fetch_churn import compute_churn
 
 
 class TestComputeChurn:
-    @patch("git_analyzer.fetch_churn.subprocess.run")
+    @patch("hotspot.git_analyzer.fetch_churn.subprocess.run")
     def test_parses_commits_correctly(self, mock_run):
         """Parsed churn data matches git log --numstat output."""
         mock_output = (
@@ -30,7 +30,7 @@ class TestComputeChurn:
         assert result["b.java"]["lines_removed"] == 1
         assert result["b.java"]["author_count"] == 1
 
-    @patch("git_analyzer.fetch_churn.subprocess.run")
+    @patch("hotspot.git_analyzer.fetch_churn.subprocess.run")
     def test_multiple_authors(self, mock_run):
         """Distinct authors are counted correctly."""
         mock_output = (
@@ -48,7 +48,7 @@ class TestComputeChurn:
         assert result["a.js"]["author_count"] == 3
         assert result["a.js"]["commit_count"] == 3
 
-    @patch("git_analyzer.fetch_churn.subprocess.run")
+    @patch("hotspot.git_analyzer.fetch_churn.subprocess.run")
     def test_empty_files_list(self, mock_run):
         """No files → empty result."""
         result = compute_churn("/tmp/repo", "main", [])

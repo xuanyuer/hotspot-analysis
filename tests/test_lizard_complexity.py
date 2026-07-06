@@ -1,9 +1,9 @@
 from unittest.mock import patch, MagicMock
-from complexity_analyzer.lizard_wrapper import compute_complexity
+from hotspot.complexity_analyzer.lizard_wrapper import compute_complexity
 
 
 class TestComputeComplexity:
-    @patch("complexity_analyzer.lizard_wrapper.subprocess.run")
+    @patch("hotspot.complexity_analyzer.lizard_wrapper.subprocess.run")
     def test_parses_lizard_csv(self, mock_run):
         """Parsed complexity data matches lizard --csv output format."""
         # Lizard CSV columns:
@@ -26,7 +26,7 @@ class TestComputeComplexity:
         assert result["b.java"]["max_complexity"] == 10
         assert abs(result["b.java"]["avg_complexity"] - 7.5) < 0.01
 
-    @patch("complexity_analyzer.lizard_wrapper.subprocess.run")
+    @patch("hotspot.complexity_analyzer.lizard_wrapper.subprocess.run")
     def test_empty_files_list(self, mock_run):
         """No files → empty result."""
         result = compute_complexity("/tmp/repo", [])

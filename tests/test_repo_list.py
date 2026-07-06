@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from git_analyzer.repo_list import parse_config, RepoEntry
+from hotspot.git_analyzer.repo_list import parse_config, RepoEntry
 
 
 def _write_yaml(content: str) -> str:

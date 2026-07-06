@@ -4,8 +4,8 @@ import csv
 import tempfile
 from pathlib import Path
 
-from models.data import FileInfo, RankedResult
-from report.aggregate import write_combined_csv, write_combined_markdown, build_run_result
+from hotspot.models.data import FileInfo, RankedResult
+from hotspot.report.aggregate import write_combined_csv, write_combined_markdown, build_run_result
 
 
 def _make_ranked(repo: str, path: str, churn: float, complexity: float, hotspot: float,

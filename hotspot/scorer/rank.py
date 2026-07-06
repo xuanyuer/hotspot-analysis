@@ -1,4 +1,4 @@
-from models.data import FileInfo, RankedResult
+from hotspot.models.data import FileInfo, RankedResult
 import statistics
 
 

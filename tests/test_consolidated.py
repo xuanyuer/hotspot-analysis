@@ -3,8 +3,8 @@
 import tempfile
 from pathlib import Path
 
-from models.data import FileInfo, RankedResult, RunResult
-from report.consolidated import write_consolidated_html
+from hotspot.models.data import FileInfo, RankedResult, RunResult
+from hotspot.report.consolidated import write_consolidated_html
 
 
 def _make_ranked(repo: str, path: str, churn: float, complexity: float, hotspot: float) -> RankedResult:

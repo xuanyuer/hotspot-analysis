@@ -4,20 +4,20 @@ import argparse
 import sys
 from pathlib import Path
 
-from git_analyzer.fetch_files import fetch_files
-from git_analyzer.fetch_churn import compute_churn
-from complexity_analyzer.lizard_wrapper import compute_complexity
-from scorer.normalize import normalize_churn, normalize_complexity
-from scorer.aggregate import compute_hotspot_score
-from scorer.rank import rank_files
-from models.data import FileInfo
-from report.tables import write_csv_report, write_markdown_report
-from report.png_report import write_png_scatter
-from report.html_report import write_html_report
-from report.aggregate import build_run_result, write_combined_csv, write_combined_markdown
-from report.consolidated import write_consolidated_html
-from config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
-from git_analyzer.repo_list import parse_config
+from hotspot.git_analyzer.fetch_files import fetch_files
+from hotspot.git_analyzer.fetch_churn import compute_churn
+from hotspot.complexity_analyzer.lizard_wrapper import compute_complexity
+from hotspot.scorer.normalize import normalize_churn, normalize_complexity
+from hotspot.scorer.aggregate import compute_hotspot_score
+from hotspot.scorer.rank import rank_files
+from hotspot.models.data import FileInfo
+from hotspot.report.tables import write_csv_report, write_markdown_report
+from hotspot.report.png_report import write_png_scatter
+from hotspot.report.html_report import write_html_report
+from hotspot.report.aggregate import build_run_result, write_combined_csv, write_combined_markdown
+from hotspot.report.consolidated import write_consolidated_html
+from hotspot.config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
+from hotspot.git_analyzer.repo_list import parse_config
 
 
 def detect_main_branch(repo_path: Path) -> str:

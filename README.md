@@ -19,22 +19,13 @@ hotspot_score = √(normalized_churn × normalized_complexity) × 100
 
 ## Installation
 
-**One-liner (auto-installs everything):**
-
-```bash
-bash <(curl -sL https://raw.githubusercontent.com/xuanyuer/hotspot-analysis/main/install.sh)
-```
-
-**Manual steps:**
-
 ```bash
 git clone https://github.com/xuanyuer/hotspot-analysis.git
 cd hotspot-analysis
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 ```
-
-**Dependencies:** `lizard`, `matplotlib`, `plotly`
 
 ## Quick Start
 
@@ -58,13 +49,11 @@ repos:
     # inherits global defaults
 ```
 
-Then run — no flags needed:
+Then run:
 
 ```bash
-python main.py
+python3 -m hotspot
 ```
-
-See `repos.sample.yaml` for a complete example.
 
 Output is written to `./hotspot-output/<repo-name>/`:
 - `ranked.csv` — ranked table with all scores
@@ -75,7 +64,7 @@ Output is written to `./hotspot-output/<repo-name>/`:
 ### Override config path
 
 ```bash
-python main.py --repo-list /custom/path/config.yaml
+python3 -m hotspot --repo-list /custom/path/config.yaml
 ```
 
 Output structure:
@@ -99,15 +88,15 @@ Failed repos are listed in the run summary and in `combined/combined.md`.
 ## CLI Reference
 
 ```
-python main.py --help
+python3 -m hotspot --help
 
-usage: main.py [-h] [--repo-list REPO_LIST] [--since SINCE] [--output OUTPUT]
+usage: hotspot [-h] [--repo-list REPO_LIST] [--since SINCE] [--output OUTPUT]
                [--hotspot-percentile HOTSPOT_PERCENTILE]
 ```
 
 | Flag | Description | Default |
-|------|-------------|---------|  
-| `--repo-list` | Path to repos.yaml (defaults to `./repos.yaml` in current directory) | |  
+|------|-------------|---------|
+| `--repo-list` | Path to repos.yaml (defaults to `./repos.yaml` in current directory) | |
 | `--since` | Time window for churn (e.g., `6months`, `2years`) | full history |
 | `--output` | Output directory | `./hotspot-output` |
 | `--hotspot-percentile` | Percentile threshold for hotspot zone | 75 |
@@ -138,8 +127,6 @@ repos:
 - If a repo has no section at all, it inherits all global defaults
 - YAML comments (`#`) are supported
 - Repo order is preserved in the output
-| `--output` | Output directory | `./hotspot-output` |
-| `--hotspot-percentile` | Percentile threshold for hotspot zone | 75 |
 
 ## Output Formats
 
@@ -193,9 +180,10 @@ Single self-contained HTML document with:
 
 ```
 repos.yaml            — Config: global defaults + per-repo overrides
-main.py               — CLI entry point, analysis pipeline orchestration
-models/data.py        — FileInfo, RankedResult, RunResult dataclasses
-scorer/
+hotspot/__main__.py   — Entry point (python3 -m hotspot)
+hotspot/main.py       — CLI entry point, analysis pipeline orchestration
+hotspot/models/data.py — FileInfo, RankedResult, RunResult dataclasses
+hotspot/scorer/
 ├── normalize.py      — IQR-based min-max normalization
 ├── aggregate.py      — Geometric mean hotspot scoring
 └── rank.py           — Percentile-based hotspot flagging
@@ -203,16 +191,18 @@ git_analyzer/
 ├── fetch_files.py    — git ls-files with include/exclude filtering
 ├── fetch_churn.py    — git log --numstat parsing
 └── repo_list.py      — YAML config parser (parse_config)
-complexity_analyzer/
+hotspot/complexity_analyzer/
 └── lizard_wrapper.py — lizard --csv parsing + file-level aggregation
-report/
+hotspot/report/
 ├── tables.py         — CSV and Markdown generation
 ├── png_report.py     — matplotlib scatter plot
 ├── html_report.py    — plotly interactive HTML
 └── aggregate.py      — Cross-repo combined reports
     consolidated.py   — Management-facing consolidated HTML
-config.py             — Default exclude patterns, threshold config
+hotspot/config.py     — Default exclude patterns, threshold config
 ```
+
+
 
 ## Data Flow
 
@@ -231,16 +221,16 @@ config.py             — Default exclude patterns, threshold config
 
 ```bash
 # Run all tests
-PYTHONPATH=. .venv/bin/pytest tests/ -v
+.venv/bin/pytest tests/ -v
 
 # Run only report tests
-PYTHONPATH=. .venv/bin/pytest tests/test_report.py -v
+.venv/bin/pytest tests/test_report.py -v
 
 # Run only aggregate tests
-PYTHONPATH=. .venv/bin/pytest tests/test_aggregate.py -v
+.venv/bin/pytest tests/test_aggregate.py -v
 
 # Run with coverage
-PYTHONPATH=. .venv/bin/pytest tests/ --cov=. --cov-report=term-missing
+.venv/bin/pytest tests/ --cov=. --cov-report=term-missing
 ```
 
 **Current: 45 tests passing**

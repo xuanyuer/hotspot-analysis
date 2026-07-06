@@ -1,6 +1,6 @@
 """Cross-repo aggregate report generation."""
 
-from models.data import RankedResult, RunResult
+from hotspot.models.data import RankedResult, RunResult
 
 
 def build_run_result(repos: list[RankedResult], failed_repos: list[str] | None = None) -> RunResult:

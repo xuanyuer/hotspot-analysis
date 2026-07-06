@@ -1,8 +1,8 @@
 import pytest
-from models.data import FileInfo, RankedResult
-from scorer.normalize import normalize_churn, normalize_complexity
-from scorer.aggregate import compute_hotspot_score
-from scorer.rank import rank_files
+from hotspot.models.data import FileInfo, RankedResult
+from hotspot.scorer.normalize import normalize_churn, normalize_complexity
+from hotspot.scorer.aggregate import compute_hotspot_score
+from hotspot.scorer.rank import rank_files
 
 
 class TestNormalizeChurn:

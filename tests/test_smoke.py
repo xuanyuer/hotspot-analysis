@@ -74,7 +74,7 @@ def test_smoke_end_to_end():
 
 
         # Run analysis
-        from main import run_analysis
+        from hotspot.main import run_analysis
 
         output_dir = Path(tmpdir) / "output"
         run_analysis(repo_path, [], [], "full", output_dir, 75)

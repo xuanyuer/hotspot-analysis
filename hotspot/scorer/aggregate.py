@@ -1,4 +1,4 @@
-from models.data import FileInfo
+from hotspot.models.data import FileInfo
 
 
 def compute_hotspot_score(files: list[FileInfo]) -> list[FileInfo]:

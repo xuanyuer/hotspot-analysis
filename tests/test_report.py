@@ -5,10 +5,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from models.data import FileInfo, RankedResult
-from report.tables import write_csv_report, write_markdown_report
-from report.png_report import write_png_scatter
-from report.html_report import write_html_report
+from hotspot.models.data import FileInfo, RankedResult
+from hotspot.report.tables import write_csv_report, write_markdown_report
+from hotspot.report.png_report import write_png_scatter
+from hotspot.report.html_report import write_html_report
 
 
 def _make_file(path: str, churn: float, complexity: float,
