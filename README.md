@@ -28,11 +28,11 @@ cd hotspot-analysis
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
+# Install dependencies (3 core deps, no bloat)
 pip install -r requirements.txt
 ```
 
-**Dependencies:** `lizard`, `pandas`, `matplotlib`, `plotly`, `pytest`
+**Dependencies:** `lizard`, `matplotlib`, `plotly` (pandas removed — not used)
 
 ## Quick Start
 
@@ -50,13 +50,14 @@ Output is written to `./hotspot-output/<repo-name>/`:
 
 ### Multi-repo analysis
 
-Create a file with repository paths (one per line, `#` for comments):
+Create a repo-list file (one per line, `#` for comments, optional inline `include:`/`exclude:` per repo):
 
 ```
 # My projects
-/path/to/service-a
-/path/to/service-b
-/path/to/legacy-service  # this one might fail
+/path/to/service-a include:*.java include:*.kt exclude:build/* exclude:gen/*
+/path/to/service-b include:*.js include:*.ts
+/path/to/legacy-service
+# Falls back to global --include/--exclude if no per-repo patterns
 ```
 
 Run batch analysis:
@@ -100,6 +101,22 @@ usage: main.py [-h] [--repo REPO] [--repo-list REPO_LIST]
 | `--include` | Glob patterns to include (e.g., `--include *.java *.py`) | all tracked files |
 | `--exclude` | Glob patterns to exclude (e.g., `--exclude test/*`) | language-specific defaults |
 | `--since` | Time window for churn (e.g., `6months`, `2years`) | full history |
+
+### Per-repo include/exclude (repo-list only)
+
+In the repo-list file, append `include:` and `exclude:` tokens after the repo path.
+Per-repo patterns **replace** (not merge with) global patterns for that repo:
+
+```
+/path/to/repo include:*.java exclude:build/*   # replaces global --include/--exclude
+/path/to/other                                # falls back to global
+```
+
+- `include:*.java` — include only `.java` files for this repo
+- `exclude:build/*` — additionally exclude `build/` for this repo
+- No per-repo patterns → global `--include`/`--exclude` apply
+- Per-repo `include:` without `--include` flag → no files included unless matched
+- Per-repo `exclude:` without `--exclude` flag → only per-repo exclusions apply
 | `--output` | Output directory | `./hotspot-output` |
 | `--hotspot-percentile` | Percentile threshold for hotspot zone | 75 |
 
@@ -223,6 +240,7 @@ PYTHONPATH=. .venv/bin/pytest tests/ --cov=. --cov-report=term-missing
 | test_scorer.py | 10 | normalization, outlier capping, ranking |
 | test_report.py | 8 | CSV, MD, PNG, HTML output |
 | test_aggregate.py | 5 | combined CSV/MD, repo aggregation |
+| test_repo_list.py | 9 | repo-list parsing, per-repo patterns |
 | test_consolidated.py | 3 | consolidated HTML |
 | test_smoke.py | 1 | end-to-end with real git repo |
 
@@ -242,8 +260,13 @@ A: This happens when a repo has only one commit or all files have identical chur
 **Q: Lizard doesn't detect complexity in my file.**
 A: Lizard needs multi-line function bodies with actual code blocks (if/switch/try). Single-line compound statements like `if(x>40){ if(x>41){ } }` may be skipped. Use multi-line formatting with proper indentation.
 
-**Q: How do I customize exclude patterns?**
-A: Use `--exclude` flags. Patterns are merged with defaults: `--exclude "*.min.js" test/`.
+**Q: How do I customize include/exclude patterns?**
+A: Two levels of control:
+1. **Global**: `--include "*.java" --exclude "build/*"` applies to all repos
+2. **Per-repo** (repo-list only): `/path/to/repo include:*.kt exclude:gen/*` replaces global for that repo
+
+**Q: Why was pandas removed?**
+A: The tool uses only `lizard`, `matplotlib`, and `plotly`. Pandas was listed but never used.
 
 **Q: Can I run this in CI?**
 A: Yes. Add `--output ./hotspot-results` and check the exit code. Exit 0 = all clean, exit 1 = partial (some repos failed). Use `--hotspot-percentile 90` to lower sensitivity.
