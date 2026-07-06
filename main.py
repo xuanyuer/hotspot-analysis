@@ -161,10 +161,8 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
 
 def main():
     parser = argparse.ArgumentParser(description="Code Churn & Complexity Hotspot Analysis Tool")
-    parser.add_argument("--repo", type=str, help="Path to git repository")
-    parser.add_argument("--repo-list", type=str, help="Path to file with repo paths (one per line)")
-    parser.add_argument("--include", nargs="+", help="Include glob patterns")
-    parser.add_argument("--exclude", nargs="+", help="Exclude glob patterns")
+    parser.add_argument("--repo-list", type=str, default=None,
+                       help="Path to repos.yaml (defaults to ./repos.yaml in current directory)")
     parser.add_argument("--since", type=str, default="full", help="Time window for churn analysis (e.g., 6months)")
     parser.add_argument("--output", type=str, default="./hotspot-output", help="Output directory")
     parser.add_argument("--hotspot-percentile", type=float, default=75, help="Percentile threshold for hotspots")
@@ -173,28 +171,24 @@ def main():
 
     # Auto-discover repos.yaml or use --repo-list flag
     config_path = args.repo_list
-    if not args.repo and not config_path:
-        try:
-            config_path = str(Path.cwd() / "repos.yaml")
-        except Exception:
-            print("Error: specify --repo or --repo-list, or provide a repos.yaml file")
-            sys.exit(1)
+    if config_path is None:
+        config_path = str(Path.cwd() / "repos.yaml")
+
+    try:
+        entries = parse_config(config_path)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        sys.exit(2)
+
+    if not entries:
+        print("Error: no repos defined in config file")
+        sys.exit(2)
 
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Build list of (repo_path, include, exclude) tuples
-    repo_tasks = []
-    if args.repo:
-        repo_tasks.append((Path(args.repo), args.include or [], args.exclude or []))
-    if config_path:
-        try:
-            entries = parse_config(config_path)
-            for entry in entries:
-                repo_tasks.append((entry.path, entry.include_patterns, entry.exclude_patterns))
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            sys.exit(2)
+    repo_tasks = [(entry.path, entry.include_patterns, entry.exclude_patterns) for entry in entries]
 
     results = []
     failed_repos = []

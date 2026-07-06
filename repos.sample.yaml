@@ -1,0 +1,40 @@
+# Code Hotspot Analysis - Sample Config
+#
+# Format: YAML with global defaults and per-repo overrides
+# Global include/exclude apply to all repos unless overridden
+# Per-repo overrides replace (not merge with) global defaults
+#
+# Examples:
+#   /path/to/repo                                         — inherits global defaults
+#   /path/to/java-repo include:*.java exclude:build/*     — Java repo, exclude generated code
+#   /path/to/js-repo include:*.js include:*.ts            — JS/TS only
+
+global:
+  include: ["*.java", "*.kt", "*.scala", "*.js", "*.ts", "*.py"]
+  exclude: ["target/*", "build/*", "node_modules/*", ".git/*", "__pycache__/*", "*.class", "*.pyc"]
+
+repos:
+  # Monorepo with mixed languages
+  /home/projects/my-monorepo:
+    include: ["*.java"]
+    exclude: ["target/*", "build/*", "**.class"]
+
+  /home/projects/frontend:
+    include: ["*.js", "*.ts"]
+    exclude: ["node_modules/*"]
+
+  /home/projects/legacy-python:
+    # inherits global defaults
+
+  # Vendor repos with different stacks
+  /opt/vendor/backend:
+    include: ["*.java"]
+    exclude: ["target/*", "**.class"]
+
+  /opt/vendor/frontend:
+    include: ["*.js", "*.ts"]
+    exclude: ["node_modules/*"]
+
+  /opt/vendor/mobile:
+    include: ["*.kt"]
+    exclude: ["build/*", "gen/*"]

@@ -38,11 +38,33 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-Analyze a single repository:
+Create a `repos.yaml` config file in the current directory:
+
+```yaml
+global:
+  include: ["*.java", "*.kt", "*.js", "*.ts", "*.py"]
+  exclude: ["target/*", "build/*", "node_modules/*", ".git/*"]
+
+repos:
+  /path/to/service-a:
+    include: ["*.java", "*.kt"]
+    exclude: ["target/*", "build/*", "**/gen/*"]
+
+  /path/to/service-b:
+    include: ["*.js", "*.ts"]
+    exclude: ["node_modules/*"]
+
+  /path/to/legacy-service:
+    # inherits global defaults
+```
+
+Then run — no flags needed:
 
 ```bash
-python main.py --repo /path/to/repo
+python main.py
 ```
+
+See `repos.sample.yaml` for a complete example.
 
 Output is written to `./hotspot-output/<repo-name>/`:
 - `ranked.csv` — ranked table with all scores
@@ -50,22 +72,10 @@ Output is written to `./hotspot-output/<repo-name>/`:
 - `scatter.png` — static matplotlib scatter plot
 - `report.html` — interactive plotly HTML with hover tooltips
 
-### Multi-repo analysis
-
-Create a repo-list file (one per line, `#` for comments, optional inline `include:`/`exclude:` per repo):
-
-```
-# My projects
-/path/to/service-a include:*.java include:*.kt exclude:build/* exclude:gen/*
-/path/to/service-b include:*.js include:*.ts
-/path/to/legacy-service
-# Falls back to global --include/--exclude if no per-repo patterns
-```
-
-Run batch analysis:
+### Override config path
 
 ```bash
-python main.py --repo-list repos.txt --output ./hotspot-output
+python main.py --repo-list /custom/path/config.yaml
 ```
 
 Output structure:
@@ -91,47 +101,45 @@ Failed repos are listed in the run summary and in `combined/combined.md`.
 ```
 python main.py --help
 
-usage: main.py [-h] [--repo REPO] [--repo-list REPO_LIST]
-               [--include INCLUDE [INCLUDE ...]] [--exclude EXCLUDE [EXCLUDE ...]]
-               [--since SINCE] [--output OUTPUT] [--hotspot-percentile HOTSPOT_PERCENTILE]
+usage: main.py [-h] [--repo-list REPO_LIST] [--since SINCE] [--output OUTPUT]
+               [--hotspot-percentile HOTSPOT_PERCENTILE]
 ```
 
 | Flag | Description | Default |
-|------|-------------|---------|
-| `--repo` | Path to a git repository | (required if no --repo-list) |
-| `--repo-list` | Path to file with repo paths (one per line) | |
-| `--include` | Glob patterns to include (e.g., `--include *.java *.py`) | all tracked files |
-| `--exclude` | Glob patterns to exclude (e.g., `--exclude test/*`) | language-specific defaults |
+|------|-------------|---------|  
+| `--repo-list` | Path to repos.yaml (defaults to `./repos.yaml` in current directory) | |  
 | `--since` | Time window for churn (e.g., `6months`, `2years`) | full history |
-
-### Per-repo include/exclude (repo-list only)
-
-In the repo-list file, append `include:` and `exclude:` tokens after the repo path.
-Per-repo patterns **replace** (not merge with) global patterns for that repo:
-
-```
-/path/to/repo include:*.java exclude:build/*   # replaces global --include/--exclude
-/path/to/other                                # falls back to global
-```
-
-- `include:*.java` — include only `.java` files for this repo
-- `exclude:build/*` — additionally exclude `build/` for this repo
-- No per-repo patterns → global `--include`/`--exclude` apply
-- Per-repo `include:` without `--include` flag → no files included unless matched
-- Per-repo `exclude:` without `--exclude` flag → only per-repo exclusions apply
 | `--output` | Output directory | `./hotspot-output` |
 | `--hotspot-percentile` | Percentile threshold for hotspot zone | 75 |
 
-### Exclude patterns
+### Config File Format
 
-Exclude patterns are applied per-language:
+The `repos.yaml` file has two sections:
 
-| Language | Default exclusions |
-|----------|-------------------|
-| Python | `__pycache__/*`, `*.pyc`, `.venv/*`, `venv/*`, `build/*`, `dist/*`, `.mypy_cache/*` |
-| Java | `target/*`, `build/*`, `.gradle/*`, `generated/*`, `*.class`, `coverage/*` |
-| JavaScript | `node_modules/*`, `dist/*`, `build/*`, `*.min.js`, `coverage/*`, `.next/*`, `.angular/*` |
-| Default | `.git/*` |
+**`global`** — default include/exclude patterns applied to all repos:
+```yaml
+global:
+  include: ["*.java", "*.kt"]
+  exclude: ["target/*", "build/*"]
+```
+
+**`repos`** — per-repo overrides that replace (not merge with) global defaults:
+```yaml
+repos:
+  /path/to/repo:
+    include: ["*.java"]           # replaces global include
+    exclude: ["target/*", "**/.class"]  # replaces global exclude
+  /path/to/other:
+    # no overrides — inherits global defaults
+```
+
+- Per-repo `include`/`exclude` **replace** global defaults entirely
+- If a repo has no `include` or `exclude`, it inherits the global value
+- If a repo has no section at all, it inherits all global defaults
+- YAML comments (`#`) are supported
+- Repo order is preserved in the output
+| `--output` | Output directory | `./hotspot-output` |
+| `--hotspot-percentile` | Percentile threshold for hotspot zone | 75 |
 
 ## Output Formats
 
@@ -184,6 +192,8 @@ Single self-contained HTML document with:
 ## Architecture
 
 ```
+repos.yaml            — Config: global defaults + per-repo overrides
+main.py               — CLI entry point, analysis pipeline orchestration
 models/data.py        — FileInfo, RankedResult, RunResult dataclasses
 scorer/
 ├── normalize.py      — IQR-based min-max normalization
@@ -191,7 +201,8 @@ scorer/
 └── rank.py           — Percentile-based hotspot flagging
 git_analyzer/
 ├── fetch_files.py    — git ls-files with include/exclude filtering
-└── fetch_churn.py    — git log --numstat parsing
+├── fetch_churn.py    — git log --numstat parsing
+└── repo_list.py      — YAML config parser (parse_config)
 complexity_analyzer/
 └── lizard_wrapper.py — lizard --csv parsing + file-level aggregation
 report/
@@ -201,19 +212,19 @@ report/
 └── aggregate.py      — Cross-repo combined reports
     consolidated.py   — Management-facing consolidated HTML
 config.py             — Default exclude patterns, threshold config
-main.py               — CLI entry point, analysis pipeline orchestration
 ```
 
 ## Data Flow
 
 ```
-1. git ls-files → file list (filtered by include/exclude)
-2. git log --numstat → per-file churn stats
-3. lizard --csv → per-file complexity
-4. normalize_churn() + normalize_complexity() → 0–100 scores
-5. √(churn × complexity) → hotspot score
-6. rank_files(percentile) → flag hotspot zone
-7. Write CSV, MD, PNG, HTML outputs
+1. Parse repos.yaml → repo list with include/exclude patterns
+2. git ls-files → file list (filtered by include/exclude)
+3. git log --numstat → per-file churn stats
+4. lizard --csv → per-file complexity
+5. normalize_churn() + normalize_complexity() → 0–100 scores
+6. √(churn × complexity) → hotspot score
+7. rank_files(percentile) → flag hotspot zone
+8. Write CSV, MD, PNG, HTML outputs
 ```
 
 ## Test Suite
@@ -232,17 +243,17 @@ PYTHONPATH=. .venv/bin/pytest tests/test_aggregate.py -v
 PYTHONPATH=. .venv/bin/pytest tests/ --cov=. --cov-report=term-missing
 ```
 
-**Current: 38 tests passing**
+**Current: 45 tests passing**
 
 | Test Module | Tests | Coverage |
 |-------------|-------|----------|
 | test_git_churn.py | 3 | churn parsing, multi-author, empty |
 | test_git_files.py | 5 | all/exclude patterns, combined |
 | test_lizard_complexity.py | 2 | CSV parsing, empty input |
-| test_scorer.py | 10 | normalization, outlier capping, ranking |
+| test_scorer.py | 7 | normalization, outlier capping, ranking |
 | test_report.py | 8 | CSV, MD, PNG, HTML output |
 | test_aggregate.py | 5 | combined CSV/MD, repo aggregation |
-| test_repo_list.py | 9 | repo-list parsing, per-repo patterns |
+| test_repo_list.py | 7 | YAML config parsing, per-repo overrides |
 | test_consolidated.py | 3 | consolidated HTML |
 | test_smoke.py | 1 | end-to-end with real git repo |
 
@@ -263,9 +274,9 @@ A: This happens when a repo has only one commit or all files have identical chur
 A: Lizard needs multi-line function bodies with actual code blocks (if/switch/try). Single-line compound statements like `if(x>40){ if(x>41){ } }` may be skipped. Use multi-line formatting with proper indentation.
 
 **Q: How do I customize include/exclude patterns?**
-A: Two levels of control:
-1. **Global**: `--include "*.java" --exclude "build/*"` applies to all repos
-2. **Per-repo** (repo-list only): `/path/to/repo include:*.kt exclude:gen/*` replaces global for that repo
+A: Two levels in `repos.yaml`:
+1. **Global**: `global.include` and `global.exclude` apply to all repos
+2. **Per-repo** (YAML only): `repos: { /path/to/repo: { include: ["*.kt"] } }` replaces global for that repo
 
 **Q: Why was pandas removed?**
 A: The tool uses only `lizard`, `matplotlib`, and `plotly`. Pandas was listed but never used.
