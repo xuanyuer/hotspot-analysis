@@ -19,20 +19,22 @@ hotspot_score = √(normalized_churn × normalized_complexity) × 100
 
 ## Installation
 
+**One-liner (auto-installs everything):**
+
 ```bash
-# Clone
+bash <(curl -sL https://raw.githubusercontent.com/xuanyuer/hotspot-analysis/main/install.sh)
+```
+
+**Manual steps:**
+
+```bash
 git clone https://github.com/xuanyuer/hotspot-analysis.git
 cd hotspot-analysis
-
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies (3 core deps, no bloat)
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Dependencies:** `lizard`, `matplotlib`, `plotly` (pandas removed — not used)
+**Dependencies:** `lizard`, `matplotlib`, `plotly`
 
 ## Quick Start
 
