@@ -11,7 +11,7 @@
 
 global:
   include: ["*.java", "*.kt", "*.scala", "*.js", "*.ts", "*.py"]
-  exclude: ["target/*", "build/*", "node_modules/*", ".git/*", "__pycache__/*", "*.class", "*.pyc"]
+  exclude: ["target/*", "build/*", "node_modules/*", ".git/*", "__pycache__/*", "**/*.class", "**/*.pyc"]
 
 repos:
   # Monorepo with mixed languages
