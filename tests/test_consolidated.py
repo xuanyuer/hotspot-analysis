@@ -29,16 +29,15 @@ def test_consolidated_html_file_generated():
     write_consolidated_html(run, str(html_path))
 
     assert html_path.exists()
-    assert html_path.stat().st_size > 1000
+    assert html_path.stat().st_size > 500
     content = html_path.read_text()
     assert "Code Hotspot Analysis Report" in content
     assert "repo-a" in content
     assert "repo-b" in content
-    assert "a.java" in content
-    assert "b.js" in content
     assert "Total repos: 2" in content
     assert "Total files: 2" in content
     assert "Total hotspots: 2" in content
+    assert "report.html" in content  # links to individual reports
 
 
 def test_consolidated_html_with_failed_repos():
@@ -58,14 +57,17 @@ def test_consolidated_html_with_failed_repos():
     assert "broken-repo" in content
 
 
-def test_consolidated_html_hotspot_highlighting():
-    run = RunResult(
-        repos=[
-            _make_ranked("repo-a", "hot.java", 95.0, 95.0, 95.0),
-            _make_ranked("repo-a", "safe.java", 5.0, 5.0, 5.0),
-        ],
-        total_repos=1, total_files=2, total_hotspots=2,
-    )
+def test_consolidated_html_summary_only():
+    # Single repo with multiple files -> single summary row
+    fi1 = FileInfo(path="hot.java", churn_score=95.0, complexity_score=95.0,
+                   hotspot_score=95.0, commit_count=1, author_count=1)
+    fi2 = FileInfo(path="safe.java", churn_score=5.0, complexity_score=5.0,
+                   hotspot_score=5.0, commit_count=1, author_count=1)
+    ranked = RankedResult(repo_name="repo-a", all_files=[fi1, fi2],
+                          hotspot_files=[fi1], total_files=2, hotspot_count=1,
+                          hotspot_ratio=0.5, hotspot_percentile=75)
+
+    run = RunResult(repos=[ranked], total_repos=1, total_files=2, total_hotspots=1)
 
     with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
         html_path = Path(f.name)
@@ -73,6 +75,7 @@ def test_consolidated_html_hotspot_highlighting():
     write_consolidated_html(run, str(html_path))
 
     content = html_path.read_text()
-    # hot.java should be in a highlighted row
-    assert 'class="hotspot"' in content
-    assert "95.0" in content
+    # Summary with repo name and stats — no per-file detail
+    assert "repo-a" in content
+    assert "50%" in content  # hotspot ratio
+    assert "50.0" in content  # avg score ((95+5)/2)

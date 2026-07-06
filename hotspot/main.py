@@ -14,7 +14,7 @@ from hotspot.models.data import FileInfo
 from hotspot.report.tables import write_csv_report, write_markdown_report
 from hotspot.report.png_report import write_png_scatter
 from hotspot.report.html_report import write_html_report
-from hotspot.report.aggregate import build_run_result, write_combined_csv, write_combined_markdown
+from hotspot.report.aggregate import build_run_result
 from hotspot.report.consolidated import write_consolidated_html
 from hotspot.config import EXCLUDE_DEFAULTS, DEFAULT_HOTSPOT_PERCENTILE
 from hotspot.git_analyzer.repo_list import parse_config
@@ -207,24 +207,15 @@ def main():
             print(f"  ERROR: {e}")
             failed_repos.append(str(repo_path))
 
-    # Write cross-repo combined reports (when multiple repos)
+    # Write consolidated summary (when multiple repos)
     if len(repo_tasks) > 1:
         combined_dir = output_dir / "combined"
         combined_dir.mkdir(parents=True, exist_ok=True)
         run = build_run_result(results, failed_repos)
 
-        combined_csv = combined_dir / "combined.csv"
-        write_combined_csv(run, str(combined_csv))
-        print(f"\n  Written combined: {combined_csv}")
-
-        combined_md = combined_dir / "combined.md"
-        write_combined_markdown(run, str(combined_md))
-        print(f"  Written combined: {combined_md}")
-
-        # Consolidated HTML report
         consolidated_html = combined_dir / "consolidated.html"
         write_consolidated_html(run, str(consolidated_html))
-        print(f"  Written combined: {consolidated_html}")
+        print(f"\n  Written consolidated: {consolidated_html}")
 
         print(f"\n  Run summary: {run.total_repos} repos, {run.total_files} files, {run.total_hotspots} hotspots")
         if failed_repos:
