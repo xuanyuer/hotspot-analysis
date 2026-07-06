@@ -16,6 +16,7 @@ class FileInfo:
 
 @dataclass
 class RankedResult:
+    all_files: list[FileInfo]
     hotspot_files: list[FileInfo]
     total_files: int
     hotspot_count: int

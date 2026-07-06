@@ -6,7 +6,7 @@ def rank_files(files: list[FileInfo], percentile: float = 75) -> RankedResult:
     """Rank files by hotspot_score descending, flag files above percentile threshold."""
     if not files:
         return RankedResult(
-            hotspot_files=[], total_files=0, hotspot_count=0,
+            all_files=[], hotspot_files=[], total_files=0, hotspot_count=0,
             hotspot_ratio=0.0, hotspot_percentile=percentile,
         )
 
@@ -18,6 +18,7 @@ def rank_files(files: list[FileInfo], percentile: float = 75) -> RankedResult:
     hotspot_files = [f for f in sorted_files if f.hotspot_score >= threshold]
 
     return RankedResult(
+        all_files=sorted_files,
         hotspot_files=hotspot_files,
         total_files=len(files),
         hotspot_count=len(hotspot_files),
