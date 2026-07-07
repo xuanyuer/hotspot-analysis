@@ -8,6 +8,7 @@ def rank_files(files: list[FileInfo], percentile: float = 75) -> RankedResult:
         return RankedResult(
             all_files=[], hotspot_files=[], total_files=0, hotspot_count=0,
             hotspot_ratio=0.0, hotspot_percentile=percentile,
+            threshold_score=0.0,
         )
 
     sorted_files = sorted(files, key=lambda f: f.hotspot_score, reverse=True)
@@ -24,4 +25,5 @@ def rank_files(files: list[FileInfo], percentile: float = 75) -> RankedResult:
         hotspot_count=len(hotspot_files),
         hotspot_ratio=len(hotspot_files) / len(files),
         hotspot_percentile=percentile,
+        threshold_score=round(threshold, 1),
     )

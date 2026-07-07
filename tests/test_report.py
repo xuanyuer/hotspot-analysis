@@ -210,3 +210,66 @@ class TestWriteHtmlReport:
 
         assert html_path.exists()
         assert html_path.stat().st_size > 0
+
+    def test_hotspot_files_get_hotspot_row_class(self):
+        """Quadrant-flagged files should match hotspot_files, not median."""
+        # median_churn=50, median_complexity=20 (churn=[10,50,90], cx=[10,20,90])
+        # hot1 has churn=90, cx=10 -> above median churn, below median cx -> NOT in top-right quadrant
+        # But hot1 has score=92 -> is in hotspot_files
+        # Test: hot1 should STILL get hotspot-row (matching hotspot_files, not quadrant)
+        files = [
+            _make_file("hot1.java", 90.0, 10.0, 92.0, commits=15, authors=4),
+            _make_file("hot2.java", 50.0, 20.0, 65.0, commits=12, authors=3),
+            _make_file("low.java", 10.0, 10.0, 10.0, commits=1, authors=1),
+        ]
+        result = RankedResult(
+            all_files=sorted(files, key=lambda f: f.hotspot_score, reverse=True),
+            hotspot_files=[files[0], files[1]],
+            total_files=3, hotspot_count=2, hotspot_ratio=2/3,
+            hotspot_percentile=75,
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            html_path = Path(f.name)
+
+        write_html_report(result, str(html_path))
+
+        content = html_path.read_text()
+        # hot1 has cx=10 (below median) so NOT in top-right quadrant,
+        # but IS in hotspot_files. HTML must match hotspot_files, not quadrant.
+        # Extract just hot1's row via regex-like approach
+        import re
+        hot1_match = re.search(r'(<tr[^>]*>[^<]*<td[^>]*>hot1\.java)', content)
+        assert hot1_match, "hot1.java not found in HTML"
+        row_tag = hot1_match.group(1)
+        assert 'hotspot-row' in row_tag, (
+            f"hot1.java is in hotspot_files but row class is {row_tag!r}, "
+            "not hotspot-row (likely using wrong quadrant classification)"
+        )
+
+    def test_histogram_chart_present(self):
+        files = [
+            _make_file("a.java", 10.0, 20.0, 15.0),
+            _make_file("b.java", 50.0, 80.0, 65.0),
+            _make_file("c.java", 90.0, 95.0, 92.0),
+        ]
+        result = RankedResult(
+            all_files=sorted(files, key=lambda f: f.hotspot_score, reverse=True),
+            hotspot_files=[files[2]],
+            total_files=3, hotspot_count=1, hotspot_ratio=1/3,
+            hotspot_percentile=75,
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+            html_path = Path(f.name)
+
+        write_html_report(result, str(html_path))
+
+        content = html_path.read_text()
+        # Histogram bar chart should be present (barmode)
+        assert "barmode" in content
+        # Should not contain scatter plot markers
+        assert '"type": "scatter"' not in content
+        # Should contain both Normal and Hotspot bar traces
+        assert "Normal" in content
+        assert "Hotspot" in content

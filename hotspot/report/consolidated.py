@@ -38,26 +38,34 @@ def write_consolidated_html(run, output_path: str) -> None:
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Code Hotspot Analysis Report</title>
 <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; background: #f5f5f5; color: #333; line-height: 1.6; }}
-    .container {{ max-width: 800px; margin: 0 auto; }}
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; color: #333; line-height: 1.6; }}
+    .container {{ max-width: 1000px; margin: 0 auto; }}
     h1 {{ font-size: 1.4em; margin-bottom: 4px; color: #1a1a1a; }}
     .meta {{ font-size: 0.9em; color: #666; margin-bottom: 20px; }}
-    .stats {{ background: #e8f4f8; padding: 14px 18px; border-radius: 6px; display: flex; gap: 28px; margin-bottom: 24px; flex-wrap: wrap; }}
+    .stats {{ background: #e8f4f8; padding: 14px 18px; border-radius: 6px; display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }}
     .stats span {{ font-weight: 500; }}
-    table {{ width: 100%; border-collapse: collapse; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
-    th {{ background: #4a90d9; color: white; text-align: left; padding: 10px 14px; font-weight: 600; }}
+    .table-wrapper {{ overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }}
+    table {{ width: 100%; border-collapse: collapse; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 500px; }}
+    th {{ background: #4a90d9; color: white; text-align: left; padding: 10px 14px; font-weight: 600; position: sticky; top: 0; }}
     td {{ padding: 10px 14px; border-bottom: 1px solid #eee; }}
     tr:last-child td {{ border-bottom: none; }}
     tr:hover {{ background: #f8f8f8; }}
     a {{ color: #4a90d9; text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
-    .failed {{ background: #fde8e8; padding: 14px 18px; border-radius: 6px; margin-top: 24px; color: #c62828; }}
+    .failed {{ background: #fde8e8; padding: 14px 18px; border-radius: 6px; margin-top: 20px; color: #c62828; }}
     .failed h3 {{ font-size: 1em; margin-bottom: 6px; }}
     .failed ul {{ margin-left: 18px; margin-top: 4px; }}
-    h2 {{ font-size: 1.1em; margin: 20px 0 12px; color: #333; }}
+    h2 {{ font-size: 1.1em; margin: 16px 0 10px; color: #333; }}
+    @media (max-width: 768px) {{
+        body {{ padding: 8px; }}
+        h1 {{ font-size: 1.2em; }}
+        .stats {{ gap: 12px; padding: 10px 14px; }}
+        .stats span {{ font-size: 0.9em; }}
+    }}
 </style>
 </head>
 <body>
@@ -70,10 +78,12 @@ def write_consolidated_html(run, output_path: str) -> None:
         <span>Total hotspots: {run.total_hotspots}</span>
     </div>
     <h2>Repos</h2>
-    <table>
-        <thead><tr><th>Repository</th><th>Files</th><th>Hotspots</th><th>Ratio</th><th>Avg Score</th></tr></thead>
-        <tbody>{repo_rows}</tbody>
-    </table>
+    <div class="table-wrapper">
+        <table>
+            <thead><tr><th>Repository</th><th>Files</th><th>Hotspots</th><th>Ratio</th><th>Avg Score</th></tr></thead>
+            <tbody>{repo_rows}</tbody>
+        </table>
+    </div>
     {failed_section}
 </div>
 </body>

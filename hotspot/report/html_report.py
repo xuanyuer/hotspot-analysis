@@ -4,134 +4,135 @@ import json
 
 
 def write_html_report(result, output_path: str) -> None:
-    """Generate HTML report with interactive scatter plot and simple ranked table."""
+    """Generate HTML report with histogram of hotspot scores and ranked table."""
     files = result.all_files
+    hotspot_paths = {f.path for f in result.hotspot_files}
 
-    churns = [f.churn_score for f in files]
-    complexities = [f.complexity_score for f in files]
-    labels = [f.path for f in files]
+    # Build histogram bins (0-100, step 10)
+    n_bins = 10
+    total_per_bin = [0] * n_bins
+    hotspot_per_bin = [0] * n_bins
+    for f in files:
+        idx = min(int(f.hotspot_score // 10), n_bins - 1)
+        total_per_bin[idx] += 1
+        if f.path in hotspot_paths:
+            hotspot_per_bin[idx] += 1
+    normal_per_bin = [total_per_bin[i] - hotspot_per_bin[i] for i in range(n_bins)]
 
-    median_churn = sum(churns) / len(churns) if churns else 50
-    median_complexity = sum(complexities) / len(complexities) if complexities else 50
-
-    # Detect hotspot points
-    is_hotspot = [c >= median_churn and cm >= median_complexity for c, cm in zip(churns, complexities)]
-
-    # Group points by (x, y) position to detect overlaps
-    from collections import defaultdict
-    position_groups = defaultdict(list)
-    for i, f in enumerate(files):
-        key = (churns[i], complexities[i])
-        position_groups[key].append(i)
-
-    # Build scatter data with jitter for overlapping points
-    jittered_x = []
-    jittered_y = []
-    jittered_texts = []
-    jittered_hotspot = []
-
-    for i, f in enumerate(files):
-        is_hs = is_hotspot[i]
-        x, y = churns[i], complexities[i]
-
-        group = position_groups[(x, y)]
-        if len(group) > 1:
-            idx_in_group = group.index(i)
-            total = len(group)
-            # Distribute points in a circle around center
-            import math
-            angle = (2 * math.pi * idx_in_group) / total
-            radius = 0.8
-            x += radius * math.cos(angle)
-            y += radius * math.sin(angle)
-
-        jittered_x.append(x)
-        jittered_y.append(y)
-        jittered_texts.append(f.path)
-        jittered_hotspot.append(is_hs)
-
-    # Build traces
-    traces = []
-
-    if any(not h for h in jittered_hotspot):
-        traces.append(json.dumps({
-            "type": "scatter",
-            "x": [x for x, m in zip(jittered_x, [not h for h in jittered_hotspot]) if m],
-            "y": [y for y, m in zip(jittered_y, [not h for h in jittered_hotspot]) if m],
-            "text": [t for t, m in zip(jittered_texts, [not h for h in jittered_hotspot]) if m],
-            "mode": "markers",
-            "hovertemplate": "%{text}<extra></extra>",
-            "name": "Normal",
-            "marker": {"color": "blue", "size": 10, "opacity": 0.6},
-        }))
-
-    if any(jittered_hotspot):
-        traces.append(json.dumps({
-            "type": "scatter",
-            "x": [x for x, m in zip(jittered_x, jittered_hotspot) if m],
-            "y": [y for y, m in zip(jittered_y, jittered_hotspot) if m],
-            "text": [t for t, m in zip(jittered_texts, jittered_hotspot) if m],
-            "mode": "markers",
-            "hovertemplate": "%{text}<extra></extra>",
-            "name": "Hotspot",
-            "marker": {"color": "red", "size": 12, "symbol": "diamond"},
-        }))
-
-    # Build the simple ranked table HTML
+    # Build the ranked table HTML
     table_rows = ""
-    for i, f in enumerate(files):
-        is_hs = is_hotspot[i]
+    for f in files:
+        is_hs = f.path in hotspot_paths
         row_class = "hotspot-row" if is_hs else ""
         table_rows += (f'<tr class="{row_class}">'
             f'<td class="file-cell">{f.path}</td>'
-            f'<td>{f.churn_score:.1f}</td>'
-            f'<td>{f.complexity_score:.1f}</td>'
-            f'<td>{f.hotspot_score:.1f}</td>'
-            f'<td>{f.commit_count}</td>'
-            f'<td>{f.author_count}</td></tr>\n')
+            f'<td class="num-cell">{f.churn_score:.1f}</td>'
+            f'<td class="num-cell">{f.complexity_score:.1f}</td>'
+            f'<td class="num-cell">{f.hotspot_score:.1f}</td>'
+            f'<td class="num-cell">{f.commit_count}</td>'
+            f'<td class="num-cell">{f.author_count}</td></tr>\n')
+
+    bin_labels = [i * 10 for i in range(n_bins)]
+    threshold_val = result.threshold_score
 
     full_html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Code Hotspot Analysis Report</title>
 <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; background: #f5f5f5; color: #333; }}
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; color: #333; }}
     .container {{ max-width: 1200px; margin: 0 auto; }}
     h1 {{ font-size: 1.4em; margin-bottom: 4px; color: #1a1a1a; }}
-    p.subtitle {{ color: #666; margin-bottom: 24px; }}
-    #chart {{ background: white; border-radius: 8px; padding: 16px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 700px; }}
-    .ranked-table {{ width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
-    .ranked-table th {{ background: #2c3e50; color: white; padding: 12px 16px; text-align: left; font-weight: 600; }}
-    .ranked-table td {{ padding: 8px 16px; border-top: 1px solid #eee; }}
+    p.subtitle {{ color: #666; margin-bottom: 16px; }}
+    #chart {{ background: white; border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
+    .stats {{ display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }}
+    .stat-card {{ background: white; border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1; min-width: 140px; }}
+    .stat-card .label {{ font-size: 0.8em; color: #666; text-transform: uppercase; }}
+    .stat-card .value {{ font-size: 1.6em; font-weight: 600; margin-top: 4px; }}
+    .stat-card.hotspot .value {{ color: #e53e3e; }}
+    .stat-card.files .value {{ color: #2b6cb0; }}
+    .table-wrapper {{ background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-x: auto; margin-bottom: 16px; -webkit-overflow-scrolling: touch; }}
+    .ranked-table {{ width: 100%; border-collapse: collapse; min-width: 550px; }}
+    .ranked-table th {{ background: #2c3e50; color: white; padding: 10px 14px; text-align: left; font-weight: 600; position: sticky; top: 0; }}
+    .ranked-table td {{ padding: 8px 14px; border-top: 1px solid #eee; white-space: nowrap; }}
     .ranked-table tr:hover {{ background: #f8f9fa; }}
-    .ranked-table .file-cell {{ max-width: 600px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; font-size: 0.9em; }}
+    .ranked-table .file-cell {{ font-family: monospace; font-size: 0.85em; max-width: 500px; overflow: hidden; text-overflow: ellipsis; }}
+    .ranked-table .num-cell {{ text-align: right; font-variant-numeric: tabular-nums; min-width: 60px; }}
     .hotspot-row {{ background: #fff5f5; }}
     .hotspot-row:hover {{ background: #ffe8e8; }}
+    @media (max-width: 768px) {{
+        body {{ padding: 8px; }}
+        h1 {{ font-size: 1.2em; }}
+        .stat-card {{ padding: 10px 12px; min-width: 120px; }}
+        .stat-card .value {{ font-size: 1.3em; }}
+        #chart {{ padding: 8px; }}
+    }}
 </style>
 </head>
 <body>
 <div class="container">
     <h1>Code Hotspot Analysis Report</h1>
     <p class="subtitle">{result.total_files} files analyzed</p>
+    <div class="stats">
+        <div class="stat-card files">
+            <div class="label">Total Files</div>
+            <div class="value">{result.total_files}</div>
+        </div>
+        <div class="stat-card hotspot">
+            <div class="label">Hotspots</div>
+            <div class="value">{result.hotspot_count} ({result.hotspot_ratio:.0%})</div>
+        </div>
+    </div>
     <div id="chart"></div>
-    <table class="ranked-table">
-        <tr><th>File</th><th>Churn</th><th>Complexity</th><th>Hotspot</th><th>Commits</th><th>Authors</th></tr>
-        {table_rows}
-    </table>
+    <div class="table-wrapper">
+        <table class="ranked-table">
+            <tr><th>File</th><th class="num-cell">Churn</th><th class="num-cell">Complexity</th><th class="num-cell">Hotspot</th><th class="num-cell">Commits</th><th class="num-cell">Authors</th></tr>
+            {table_rows}
+        </table>
+    </div>
 </div>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script>
-var traces = [{','.join(traces)}];
+var binLabels = {json.dumps(bin_labels)};
+var totalBars = {json.dumps(total_per_bin)};
+var hotspotBars = {json.dumps(hotspot_per_bin)};
+var normalBars = {json.dumps(normal_per_bin)};
+
 var layout = {{
-    title: "Churn vs Complexity",
-    xaxis: {{ title: "Churn Score" }},
-    yaxis: {{ title: "Complexity Score" }},
-    showlegend: true,
-    height: 650
+    barmode: 'stack',
+    xaxis: {{ title: 'Hotspot Score (0-100)', range: [-5, 105] }},
+    yaxis: {{ title: 'File Count', fixedrange: true }},
+    shapes: [{{
+        type: 'line', x0: {threshold_val}, x1: {threshold_val},
+        y0: 0, y1: 1, yref: 'paper',
+        line: {{ color: '#e53e3e', width: 2, dash: 'dash' }}
+    }}],
+    annotations: [{{
+        x: {threshold_val}, y: 1, yref: 'paper',
+        text: 'Threshold: {threshold_val}',
+        showarrow: false, yshift: -10,
+        font: {{ size: 12, color: '#e53e3e' }}
+    }}],
+    margin: {{ t: 60, b: 50, l: 50, r: 20 }},
+    height: 400
 }};
-Plotly.newPlot('chart', traces, layout);
+
+var traces = [
+    {{
+        type: 'bar', x: binLabels, y: normalBars,
+        name: 'Normal', marker: {{ color: '#63b3ed', opacity: 0.7 }}
+    }},
+    {{
+        type: 'bar', x: binLabels, y: hotspotBars,
+        name: 'Hotspot', marker: {{ color: '#fc8181' }}
+    }}
+];
+
+var config = {{ responsive: true, displayModeBar: false }};
+Plotly.newPlot('chart', traces, layout, config);
 </script>
 </body>
 </html>"""

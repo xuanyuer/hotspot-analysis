@@ -23,6 +23,7 @@ class RankedResult:
     hotspot_count: int = 0
     hotspot_ratio: float = 0.0
     hotspot_percentile: float = 75.0
+    threshold_score: float = 0.0
 
 
 @dataclass
