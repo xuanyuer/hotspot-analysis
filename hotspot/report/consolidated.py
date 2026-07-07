@@ -13,16 +13,16 @@ def write_consolidated_html(run, output_path: str) -> None:
     """
     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Repo summary rows — sorted by median score descending
+    # Repo summary rows — sorted by median score > ratio > hotspots, all descending
     repo_scores = []
     for r in run.repos:
         scores = [f.hotspot_score for f in r.all_files]
         median_score = statistics.median(scores) if scores else 0
-        repo_scores.append((r, median_score))
-    repo_scores.sort(key=lambda x: x[1], reverse=True)
+        repo_scores.append((median_score, r))
+    repo_scores.sort(key=lambda x: (x[0], x[1].hotspot_ratio, x[1].hotspot_count), reverse=True)
 
     repo_rows = ""
-    for r, median_score in repo_scores:
+    for median_score, r in repo_scores:
         link = f"{r.repo_name}/report.html"
         repo_rows += f"""<tr>
             <td><a href="{html_mod.escape(link)}">{html_mod.escape(r.repo_name)}</a></td>
