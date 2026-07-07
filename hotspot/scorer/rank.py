@@ -16,7 +16,11 @@ def rank_files(files: list[FileInfo], percentile: float = 75) -> RankedResult:
     scores = [f.hotspot_score for f in sorted_files]
     threshold = statistics.quantiles(scores, n=100, method='inclusive')[percentile - 1]
 
-    hotspot_files = [f for f in sorted_files if f.hotspot_score >= threshold]
+    # threshold of 0 means no meaningful threshold (all files are 0)
+    if threshold == 0:
+        hotspot_files = []
+    else:
+        hotspot_files = [f for f in sorted_files if f.hotspot_score >= threshold]
 
     return RankedResult(
         all_files=sorted_files,
