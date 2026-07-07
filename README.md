@@ -61,6 +61,8 @@ Output is written to `./hotspot-report/<repo-name>/`:
 - `scatter.png` — static matplotlib scatter plot
 - `report.html` — interactive plotly HTML with hover tooltips
 
+For multi-repo runs, a consolidated `index.html` is also written to `./hotspot-report/`.
+
 ### Override config path
 
 ```bash
@@ -77,13 +79,10 @@ hotspot-report/
 │   └── report.html
 ├── service-b/
 │   ├── ...
-├── combined/
-│   ├── combined.csv          — all files from all repos, sorted by hotspot score
-│   ├── combined.md           — per-repo summary + ranked table
-│   └── consolidated.html     — management-facing single-file report
+└── index.html                — management-facing multi-repo summary
 ```
 
-Failed repos are listed in the run summary and in `combined/combined.md`.
+Failed repos are listed in the run summary and in the consolidated index.
 
 ## CLI Reference
 
@@ -133,10 +132,12 @@ repos:
 ### ranked.csv
 
 ```csv
-file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count
-Hotspot.java,85.00,92.00,88.44,15,420,180,4
-Simple.java,5.00,10.00,7.07,2,15,3,1
+file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count,hotspot_lines
+Hotspot.java,85.00,92.00,88.44,15,420,180,4,"10-35, 50-72"
+Simple.java,5.00,10.00,7.07,2,15,3,1,
 ```
+
+- `hotspot_lines`: ranges of lines inside complex functions (CCN ≥ 10). Multiple ranges separated by `;`.
 
 ### ranked.md
 
@@ -145,11 +146,13 @@ Simple.java,5.00,10.00,7.07,2,15,3,1
 
 **Total files:** 150 | **Hotspots:** 12 (8%)
 
-| File | Churn | Complexity | Hotspot | Commits | Authors |
-|------|-------|------------|---------|---------|---------|
-| Hotspot.java | 85.0 | 92.0 | 88.4 | 15 | 4 |
-| ...
+| File | Churn | Complexity | Hotspot | Commits | Authors | Lines |
+|------|-------|------------|---------|---------|---------|-------|
+| Hotspot.java | 85.0 | 92.0 | 88.4 | 15 | 4 | 10-35, 50-72 |
+| Simple.java | 5.0 | 10.0 | 7.1 | 2 | 1 | |
 ```
+
+- `Lines`: ranges of lines inside complex functions (CCN ≥ 10). Empty when no functions are complex enough.
 
 ### scatter.png
 
@@ -164,42 +167,41 @@ Y-axis: normalized complexity score (0–100)
 
 Interactive HTML generated with Plotly:
 - Hover tooltips show file path, scores, and commit details
-- Files are colored by hotspot classification
+- Files are colored by hotspot classification (red for hotspots)
 - Sortable columns in the ranked table
+- "Lines" column shows ranges of lines inside complex functions (CCN ≥ 10)
 
-### consolidated.html (multi-repo only)
+### index.html (multi-repo only)
 
 Single self-contained HTML document with:
 - Run-level summary (total repos, files, hotspots)
-- Per-repo sections with summary stats, file tables, and top-3 hotspot callouts
-- Combined ranked table (all files across all repos)
+- Per-repo table with summary stats (file count, hotspot count, ratio, median score)
 - Failed repos section with error information
-- Repos ranked by max hotspot score
+- Repos ranked by median score (tie-break: hotspot ratio, then hotspot count)
 
 ## Architecture
 
 ```
-repos.yaml            — Config: global defaults + per-repo overrides
-hotspot/__main__.py   — Entry point (python3 -m hotspot)
-hotspot/main.py       — CLI entry point, analysis pipeline orchestration
-hotspot/models/data.py — FileInfo, RankedResult, RunResult dataclasses
-hotspot/scorer/
-├── normalize.py      — IQR-based min-max normalization
-├── aggregate.py      — Geometric mean hotspot scoring
-└── rank.py           — Percentile-based hotspot flagging
 git_analyzer/
 ├── fetch_files.py    — git ls-files with include/exclude filtering
 ├── fetch_churn.py    — git log --numstat parsing
 └── repo_list.py      — YAML config parser (parse_config)
-hotspot/complexity_analyzer/
-└── lizard_wrapper.py — lizard --csv parsing + file-level aggregation
-hotspot/report/
+complexity_analyzer/
+└── lizard_wrapper.py — lizard --csv parsing + per-function complexity
+config.py             — Default exclude patterns, threshold config
+main.py               — CLI entry point, analysis pipeline orchestration
+models/
+└── data.py           — FileInfo, RankedResult, RunResult dataclasses
+report/
+├── consolidated.py   — Multi-repo index.html (management-facing)
+├── html_report.py    — Per-repo interactive report (Plotly)
+├── png_report.py     — Matplotlib scatter plot
 ├── tables.py         — CSV and Markdown generation
-├── png_report.py     — matplotlib scatter plot
-├── html_report.py    — plotly interactive HTML
-└── aggregate.py      — Cross-repo combined reports
-    consolidated.py   — Management-facing consolidated HTML
-hotspot/config.py     — Default exclude patterns, threshold config
+└── aggregate.py      — Cross-repo RunResult builder
+scorer/
+├── normalize.py      — IQR-based min-max normalization
+├── aggregate.py      — Geometric mean hotspot scoring
+└── rank.py           — Percentile-based hotspot flagging
 ```
 
 
@@ -233,16 +235,16 @@ hotspot/config.py     — Default exclude patterns, threshold config
 .venv/bin/pytest tests/ --cov=. --cov-report=term-missing
 ```
 
-**Current: 45 tests passing**
+**Current: 44 tests passing**
 
 | Test Module | Tests | Coverage |
 |-------------|-------|----------|
 | test_git_churn.py | 3 | churn parsing, multi-author, empty |
 | test_git_files.py | 5 | all/exclude patterns, combined |
 | test_lizard_complexity.py | 2 | CSV parsing, empty input |
-| test_scorer.py | 7 | normalization, outlier capping, ranking |
-| test_report.py | 8 | CSV, MD, PNG, HTML output |
-| test_aggregate.py | 5 | combined CSV/MD, repo aggregation |
+| test_scorer.py | 10 | normalization, outlier capping, ranking |
+| test_report.py | 11 | CSV, MD, PNG, HTML output |
+| test_aggregate.py | 2 | combined CSV/MD, repo aggregation |
 | test_repo_list.py | 7 | YAML config parsing, per-repo overrides |
 | test_consolidated.py | 3 | consolidated HTML |
 | test_smoke.py | 1 | end-to-end with real git repo |
