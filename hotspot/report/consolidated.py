@@ -1,6 +1,7 @@
 """Consolidated HTML report — simple summary with links to individual reports."""
 
 import html as html_mod
+import statistics
 from datetime import datetime
 
 
@@ -12,22 +13,23 @@ def write_consolidated_html(run, output_path: str) -> None:
     """
     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Repo summary rows — sorted by avg score descending
+    # Repo summary rows — sorted by median score descending
     repo_scores = []
     for r in run.repos:
-        avg_score = sum(f.hotspot_score for f in r.all_files) / len(r.all_files) if r.all_files else 0
-        repo_scores.append((r, avg_score))
+        scores = [f.hotspot_score for f in r.all_files]
+        median_score = statistics.median(scores) if scores else 0
+        repo_scores.append((r, median_score))
     repo_scores.sort(key=lambda x: x[1], reverse=True)
 
     repo_rows = ""
-    for r, avg_score in repo_scores:
+    for r, median_score in repo_scores:
         link = f"{r.repo_name}/report.html"
         repo_rows += f"""<tr>
             <td><a href="{html_mod.escape(link)}">{html_mod.escape(r.repo_name)}</a></td>
             <td>{r.total_files}</td>
             <td>{r.hotspot_count}</td>
             <td>{r.hotspot_ratio:.0%}</td>
-            <td class="num-cell">{avg_score:.1f}</td>
+            <td class="num-cell">{median_score:.1f}</td>
         </tr>"""
 
     # Failed repos
@@ -85,7 +87,7 @@ def write_consolidated_html(run, output_path: str) -> None:
     <h2>Repos</h2>
     <div class="table-wrapper">
         <table>
-            <thead><tr><th>Repository</th><th>Files</th><th>Hotspots</th><th>Ratio</th><th>Avg Score</th></tr></thead>
+            <thead><tr><th>Repository</th><th>Files</th><th>Hotspots</th><th>Ratio</th><th>Median Score</th></tr></thead>
             <tbody>{repo_rows}</tbody>
         </table>
     </div>
