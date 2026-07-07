@@ -1,5 +1,6 @@
 """HTML interactive report generation using plotly."""
 
+import html
 import json
 
 
@@ -24,13 +25,19 @@ def write_html_report(result, output_path: str) -> None:
     for f in files:
         is_hs = f.path in hotspot_paths
         row_class = "hotspot-row" if is_hs else ""
+        # Format hotspot lines as "start-end" or "start-end, start-end"
+        line_display = ""
+        if f.hotspot_lines:
+            line_display = ", ".join(f"{s}-{e}" for s, e in f.hotspot_lines)
         table_rows += (f'<tr class="{row_class}">'
             f'<td class="file-cell">{f.path}</td>'
             f'<td class="num-cell">{f.churn_score:.1f}</td>'
             f'<td class="num-cell">{f.complexity_score:.1f}</td>'
             f'<td class="num-cell">{f.hotspot_score:.1f}</td>'
             f'<td class="num-cell">{f.commit_count}</td>'
-            f'<td class="num-cell">{f.author_count}</td></tr>\n')
+            f'<td class="num-cell">{f.author_count}</td>'
+            f'<td class="lines-cell" title="{html.escape(line_display)}">{line_display}</td>'
+            f'</tr>\n')
 
     bin_labels = [i * 10 for i in range(n_bins)]
     threshold_val = result.threshold_score
@@ -61,6 +68,7 @@ def write_html_report(result, output_path: str) -> None:
     .ranked-table tr:hover {{ background: #f8f9fa; }}
     .ranked-table .file-cell {{ font-family: monospace; font-size: 0.85em; max-width: 500px; overflow: hidden; text-overflow: ellipsis; }}
     .ranked-table .num-cell {{ text-align: right; font-variant-numeric: tabular-nums; min-width: 60px; }}
+    .ranked-table .lines-cell {{ font-family: monospace; font-size: 0.8em; color: #c53030; min-width: 80px; }}
     .hotspot-row {{ background: #fff5f5; }}
     .hotspot-row:hover {{ background: #ffe8e8; }}
     @media (max-width: 768px) {{
@@ -89,7 +97,7 @@ def write_html_report(result, output_path: str) -> None:
     <div id="chart"></div>
     <div class="table-wrapper">
         <table class="ranked-table">
-            <tr><th>File</th><th class="num-cell">Churn</th><th class="num-cell">Complexity</th><th class="num-cell">Hotspot</th><th class="num-cell">Commits</th><th class="num-cell">Authors</th></tr>
+            <tr><th>File</th><th class="num-cell">Churn</th><th class="num-cell">Complexity</th><th class="num-cell">Hotspot</th><th class="num-cell">Commits</th><th class="num-cell">Authors</th><th>Lines</th></tr>
             {table_rows}
         </table>
     </div>

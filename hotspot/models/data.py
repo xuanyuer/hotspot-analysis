@@ -12,6 +12,7 @@ class FileInfo:
     churn_score: float = 0.0
     complexity_score: float = 0.0
     hotspot_score: float = 0.0
+    hotspot_lines: list[tuple[int, int]] = field(default_factory=list)  # (start, end) line ranges
 
 
 @dataclass

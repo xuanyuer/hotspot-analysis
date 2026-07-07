@@ -96,7 +96,7 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
         complexity_score = complexity_scores.get(filepath, 0.0)
         c = churn_data.get(filepath, {})
         co = complexity_data.get(filepath, {})
-
+        hotspot_lines = co.get("hotspot_lines", [])
         fi = FileInfo(
             path=filepath,
             commit_count=c.get("commit_count", 0),
@@ -105,6 +105,7 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
             author_count=c.get("author_count", 0),
             churn_score=churn_score,
             complexity_score=complexity_score,
+            hotspot_lines=hotspot_lines,
         )
         files_info.append(fi)
 

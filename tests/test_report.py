@@ -82,7 +82,7 @@ class TestWriteCsvReport:
         with open(csv_path) as f:
             header = f.readline().strip()
 
-        expected = "file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count"
+        expected = "file_path,churn_score,complexity_score,hotspot_score,commit_count,lines_added,lines_removed,author_count,hotspot_lines"
         assert header == expected
 
 
@@ -109,8 +109,8 @@ class TestWriteMarkdownReport:
         assert "# Hotspot Analysis Report" in content
         assert "**Total files:** 2" in content
         assert "**Hotspots:** 2 (100%)" in content
-        assert "| hot.java | 90.0 | 95.0 | 92.0 | 15 | 4 |" in content
-        assert "| simple.java | 10.0 | 10.0 | 10.0 | 1 | 1 |" in content
+        assert "| hot.java | 90.0 | 95.0 | 92.0 | 15 | 4 |  |" in content
+        assert "| simple.java | 10.0 | 10.0 | 10.0 | 1 | 1 |  |" in content
 
     def test_empty_result_has_no_file_rows(self):
         result = RankedResult(

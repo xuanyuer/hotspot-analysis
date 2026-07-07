@@ -25,6 +25,23 @@ def _find_lizard() -> str:
     )
 
 
+# Functions with CCN >= this threshold are considered complex/hotspot functions
+COMPLEXITY_THRESHOLD = 10
+
+
+def _merge_ranges(ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Merge overlapping or adjacent line ranges."""
+    if not ranges:
+        return []
+    merged = []
+    for start, end in sorted(ranges):
+        if merged and start <= merged[-1][1] + 1:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    return merged
+
+
 def compute_complexity(repo_path: str, files: list[str]) -> dict:
     """Run lizard on files and aggregate per-function complexity to file level.
 
@@ -51,6 +68,8 @@ def compute_complexity(repo_path: str, files: list[str]) -> dict:
     file_ccns = defaultdict(list)
     # Per-file: last line number (used as file_length)
     file_max_line = {}
+    # Per-file: (ccn, start_line, end_line) for each function
+    file_functions = defaultdict(list)
 
     repo_abs = os.path.abspath(str(repo_path))
 
@@ -71,22 +90,22 @@ def compute_complexity(repo_path: str, files: list[str]) -> dict:
             continue
 
         # Column 5 = location, format: "func_name@start-end@filepath"
-        # Extract file from location (fallback to column 6)
         location = row[5].strip()
         if "@" in location:
             loc_parts = location.rsplit("@", 2)
             loc_file = loc_parts[2] if len(loc_parts) == 3 else loc_parts[-1]
-            # Ensure it's the same file
             if os.path.abspath(loc_file) == os.path.abspath(filepath):
-                # Extract start line from "func_name@start-end@filepath"
                 func_info = location.rsplit("@", 2)[1]
                 if "-" in func_info:
                     start_str, end_str = func_info.rsplit("-", 1)
                     try:
                         start_line = int(start_str.strip())
+                        end_line = int(end_str.strip())
                         file_max_line[filepath] = max(
-                            file_max_line.get(filepath, 0), int(end_str.strip())
+                            file_max_line.get(filepath, 0), end_line
                         )
+                        # Collect (ccn, start, end) per function for hotspot line detection
+                        file_functions[filepath].append((ccn, start_line, end_line))
                     except (ValueError, IndexError):
                         pass
 
@@ -117,10 +136,20 @@ def compute_complexity(repo_path: str, files: list[str]) -> dict:
         except (FileNotFoundError, PermissionError):
             file_length = 0
 
+        # Collect line ranges from functions exceeding the complexity threshold
+        hotspot_lines: list[tuple[int, int]] = [
+            (start, end)
+            for ccn, start, end in file_functions.get(filepath, [])
+            if ccn >= COMPLEXITY_THRESHOLD
+        ]
+        # Remove overlaps by merging ranges
+        hotspot_lines = _merge_ranges(hotspot_lines)
+
         result_data[rel_path] = {
             "max_complexity": max(ccns),
             "avg_complexity": sum(ccns) / len(ccns),
             "file_length": file_length,
+            "hotspot_lines": hotspot_lines,
         }
 
     return result_data
