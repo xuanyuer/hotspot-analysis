@@ -12,17 +12,22 @@ def write_consolidated_html(run, output_path: str) -> None:
     """
     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Repo summary rows
-    repo_rows = ""
+    # Repo summary rows — sorted by avg score descending
+    repo_scores = []
     for r in run.repos:
         avg_score = sum(f.hotspot_score for f in r.all_files) / len(r.all_files) if r.all_files else 0
+        repo_scores.append((r, avg_score))
+    repo_scores.sort(key=lambda x: x[1], reverse=True)
+
+    repo_rows = ""
+    for r, avg_score in repo_scores:
         link = f"{r.repo_name}/report.html"
         repo_rows += f"""<tr>
             <td><a href="{html_mod.escape(link)}">{html_mod.escape(r.repo_name)}</a></td>
             <td>{r.total_files}</td>
             <td>{r.hotspot_count}</td>
             <td>{r.hotspot_ratio:.0%}</td>
-            <td>{avg_score:.1f}</td>
+            <td class="num-cell">{avg_score:.1f}</td>
         </tr>"""
 
     # Failed repos
