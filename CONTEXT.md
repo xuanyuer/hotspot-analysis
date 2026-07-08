@@ -25,7 +25,7 @@ A 0-100 intensity measure computed as the geometric mean of normalized churn and
 _Avoid_: Risk score, hotspot index, combined score
 
 **Hotspot zone**:
-The set of files whose hotspot score exceeds a configurable percentile threshold (default: 75th percentile within the repo). These are the files flagged for review.
+The set of files whose hotspot score exceeds a configurable threshold. Default: absolute score ≥ 50. Override with `--hotspot-threshold <value>` for a different absolute threshold, or `--hotspot-percentile <N>` to compute the threshold from the Nth percentile of global scores.
 _Avoid_: Danger zone, critical files, problem areas
 
 **Stack**:
@@ -33,7 +33,7 @@ The programming language of a repo's source files, auto-detected by lizard (e.g.
 _Avoid_: Language, framework, tech stack
 
 **Normalization score**:
-A file's raw metric value rescaled to 0-100 within a repo using IQR-aware min-max scaling. Outliers beyond IQR boundaries are capped before scaling.
+A file's raw metric value rescaled to 0-100 globally across all repos in a run using IQR-aware min-max scaling. Outliers beyond IQR boundaries are capped before scaling. Scores are directly comparable across repos.
 _Avoid_: Score, normalized value, score
 
 **Config file**:

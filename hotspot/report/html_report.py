@@ -47,12 +47,13 @@ def write_html_report(result, output_path: str) -> None:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Code Hotspot Analysis Report</title>
+<title>{html.escape(result.repo_name)} — Code Hotspot Analysis Report</title>
 <style>
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
     body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; color: #333; }}
     .container {{ max-width: 1200px; margin: 0 auto; }}
     h1 {{ font-size: 1.4em; margin-bottom: 4px; color: #1a1a1a; }}
+    h1.repo-name {{ font-size: 1.6em; margin-bottom: 2px; }}
     p.subtitle {{ color: #666; margin-bottom: 16px; }}
     #chart {{ background: white; border-radius: 8px; padding: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }}
     .stats {{ display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }}
@@ -82,8 +83,8 @@ def write_html_report(result, output_path: str) -> None:
 </head>
 <body>
 <div class="container">
-    <h1>Code Hotspot Analysis Report</h1>
-    <p class="subtitle">{result.total_files} files analyzed</p>
+    <h1 class="repo-name">{html.escape(result.repo_name)}</h1>
+    <p class="subtitle">Code Hotspot Analysis Report — {result.total_files} files analyzed</p>
     <div class="stats">
         <div class="stat-card files">
             <div class="label">Total Files</div>

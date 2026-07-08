@@ -9,7 +9,7 @@ from hotspot.git_analyzer.fetch_churn import compute_churn
 from hotspot.complexity_analyzer.lizard_wrapper import compute_complexity
 from hotspot.scorer.normalize import normalize_churn, normalize_complexity
 from hotspot.scorer.aggregate import compute_hotspot_score
-from hotspot.scorer.rank import rank_files
+from hotspot.scorer.rank import rank_files, compute_global_threshold
 from hotspot.models.data import FileInfo
 from hotspot.report.tables import write_csv_report, write_markdown_report
 from hotspot.report.png_report import write_png_scatter
@@ -55,9 +55,9 @@ def detect_language(repo_path: Path) -> str:
     return "default"
 
 
-def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
-                 since: str, output_dir: Path, percentile: float) -> RankedResult:
-    """Run the full analysis pipeline for a single repo. Returns RankedResult."""
+def collect_repo_data(repo_path: Path, include: list[str], exclude: list[str],
+                      since: str):
+    """Fetch files, compute churn and complexity. Returns (files, churn_data, complexity_data) or None on failure."""
     main_branch = detect_main_branch(repo_path)
     repo_name = repo_path.name
     lang = detect_language(repo_path)
@@ -74,7 +74,7 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
 
     if not files:
         print(f"  No files to analyze. Skipping.")
-        return RankedResult(repo_name=repo_name)
+        return None
 
     # 2. Compute churn
     print(f"  Computing churn from git history...")
@@ -84,10 +84,89 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
     print(f"  Computing complexity via lizard...")
     complexity_data = compute_complexity(str(repo_path), files)
 
-    # 4. Normalize
-    print(f"  Normalizing scores...")
+    return files, churn_data, complexity_data, main_branch, repo_name
+
+
+def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
+                 since: str, output_dir: Path, percentile: float) -> RankedResult:
+    """Backward-compat: run analysis on a single repo (per-repo normalization)."""
+    data = collect_repo_data(repo_path, include, exclude, since)
+    if data is None:
+        return RankedResult(repo_name=repo_path.name)
+    files, churn_data, complexity_data, main_branch, repo_name = data
+
+    # Single repo: normalize within this repo
     churn_scores = normalize_churn(churn_data)
     complexity_scores = normalize_complexity(complexity_data)
+
+    return process_repo_files(repo_path, files, churn_data, complexity_data,
+                              churn_scores, complexity_scores,
+                              global_threshold=None, percentile=percentile, output_dir=output_dir)
+
+
+def process_repo_files(repo_path: Path, files: list[str], churn_data: dict, complexity_data: dict,
+                       global_churn_scores: dict, global_complexity_scores: dict,
+                       global_threshold: float, percentile: float, output_dir: Path) -> RankedResult:
+    """Build FileInfo with global scores, rank with global threshold, and write output."""
+    files_info = []
+    for filepath in files:
+        churn_score = global_churn_scores.get(filepath, 0.0)
+        complexity_score = global_complexity_scores.get(filepath, 0.0)
+        c = churn_data.get(filepath, {})
+        co = complexity_data.get(filepath, {})
+        hotspot_lines = co.get("hotspot_lines", [])
+        fi = FileInfo(
+            path=filepath,
+            commit_count=c.get("commit_count", 0),
+            lines_added=c.get("lines_added", 0),
+            lines_removed=c.get("lines_removed", 0),
+            author_count=c.get("author_count", 0),
+            churn_score=churn_score,
+            complexity_score=complexity_score,
+            hotspot_lines=hotspot_lines,
+        )
+        files_info.append(fi)
+
+    # Compute hotspot scores
+    print(f"  Computing hotspot scores...")
+    files_info = compute_hotspot_score(files_info)
+
+    # Rank using global threshold
+    print(f"  Ranking files...")
+    result = rank_files(files_info, percentile=percentile, global_threshold=global_threshold)
+
+    # Output
+    repo_name = repo_path.name
+    result.repo_name = repo_name
+    repo_output = output_dir / repo_name
+    repo_output.mkdir(parents=True, exist_ok=True)
+
+    csv_path = repo_output / "ranked.csv"
+    write_csv_report(result, str(csv_path))
+    print(f"  Written: {csv_path}")
+
+    md_path = repo_output / "ranked.md"
+    write_markdown_report(result, str(md_path))
+    print(f"  Written: {md_path}")
+
+    png_path = repo_output / "scatter.png"
+    write_png_scatter(result, str(png_path))
+    print(f"  Written: {png_path}")
+
+    html_path = repo_output / "report.html"
+    write_html_report(result, str(html_path))
+    print(f"  Written: {html_path}")
+
+    print(f"\n  Summary:")
+    print(f"    Total files: {result.total_files}")
+    print(f"    Hotspot count: {result.hotspot_count} ({result.hotspot_ratio:.0%})")
+    print(f"    Threshold: {result.hotspot_percentile}th percentile (score >= {result.threshold_score:.1f})")
+    if result.hotspot_files:
+        print(f"\n  Top 5 hotspots:")
+        for f in result.hotspot_files[:5]:
+            print(f"    {f.path} (score: {f.hotspot_score:.1f})")
+
+    return result
 
     # 5. Build FileInfo objects
     files_info = []
@@ -118,6 +197,7 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
     result = rank_files(files_info, percentile=percentile)
 
     # 8. Output
+    result.repo_name = repo_name
     repo_output = output_dir / repo_name
     repo_output.mkdir(parents=True, exist_ok=True)
 
@@ -141,9 +221,6 @@ def run_analysis(repo_path: Path, include: list[str], exclude: list[str],
     write_html_report(result, str(html_path))
     print(f"  Written: {html_path}")
 
-    # Set repo name
-    result.repo_name = repo_name
-
     # Summary
     print(f"\n  Summary:")
     print(f"    Total files: {result.total_files}")
@@ -166,7 +243,8 @@ def main():
                        help="Path to repos.yaml (defaults to ./repos.yaml in current directory)")
     parser.add_argument("--since", type=str, default="full", help="Time window for churn analysis (e.g., 6months)")
     parser.add_argument("--output", type=str, default="./hotspot-report", help="Output directory")
-    parser.add_argument("--hotspot-percentile", type=float, default=75, help="Percentile threshold for hotspots")
+    parser.add_argument("--hotspot-threshold", type=float, default=50.0, help="Absolute hotspot score threshold. Files >= threshold are hotspots.")
+    parser.add_argument("--hotspot-percentile", type=float, default=75, help="Compute threshold from this percentile (overrides --hotspot-threshold)")
 
     args = parser.parse_args()
 
@@ -191,21 +269,75 @@ def main():
     # Build list of (repo_path, include, exclude) tuples
     repo_tasks = [(entry.path, entry.include_patterns, entry.exclude_patterns) for entry in entries]
 
-    results = []
+    # Phase 1: Collect raw data from all repos
+    print("\n=== Phase 1: Collecting raw data ===")
+    all_churn = {}
+    all_complexity = {}
+    repo_run_data = []
     failed_repos = []
     fatal_error = False
 
     for repo_path, include, exclude in repo_tasks:
         print(f"\nAnalyzing: {repo_path}")
         try:
-            ranked = run_analysis(repo_path, include, exclude,
-                                  args.since, output_dir, args.hotspot_percentile)
+            data = collect_repo_data(repo_path, include, exclude, args.since)
+            if data is None:
+                continue
+            files, churn_data, complexity_data, main_branch, repo_name = data
+            all_churn.update(churn_data)
+            all_complexity.update(complexity_data)
+            repo_run_data.append((repo_path, files, churn_data, complexity_data))
+        except SystemExit:
+            raise
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            failed_repos.append(str(repo_path))
+
+    if not repo_run_data:
+        print("No repos produced data. Exiting.")
+        sys.exit(1)
+
+    # Phase 2: Global normalization
+    print(f"\n=== Phase 2: Normalizing globally ({len(all_churn)} files) ===")
+    global_churn_scores = normalize_churn(all_churn)
+    global_complexity_scores = normalize_complexity(all_complexity)
+    print(f"  Global churn range: {min(global_churn_scores.values()):.1f} - {max(global_churn_scores.values()):.1f}")
+    print(f"  Global complexity range: {min(global_complexity_scores.values()):.1f} - {max(global_complexity_scores.values()):.1f}")
+
+    # Phase 3a: Compute all hotspot scores to get global threshold
+    print(f"\n=== Phase 3a: Computing global hotspot scores ===")
+    all_hotspot_scores = {}
+    repo_score_maps = {}
+    for repo_path, files, churn_data, complexity_data in repo_run_data:
+        for filepath in files:
+            cs = global_churn_scores.get(filepath, 0.0)
+            cs2 = global_complexity_scores.get(filepath, 0.0)
+            hs = (cs * cs2) ** 0.5
+            all_hotspot_scores[filepath] = hs
+        repo_score_maps[repo_path] = {f: all_hotspot_scores[f] for f in files}
+
+    # --hotspot-percentile overrides default absolute threshold
+    if "--hotspot-percentile" in sys.argv:
+        global_threshold = compute_global_threshold(list(all_hotspot_scores.values()), args.hotspot_percentile)
+        print(f"  Global threshold ({args.hotspot_percentile}th pct): {global_threshold:.1f}")
+    else:
+        global_threshold = args.hotspot_threshold
+        print(f"  Absolute threshold: {global_threshold:.1f}")
+
+    # Phase 3b: Process each repo with global threshold
+    print(f"\n=== Phase 3b: Ranking with global threshold ===")
+    results = []
+    for repo_path, files, churn_data, complexity_data in repo_run_data:
+        try:
+            ranked = process_repo_files(repo_path, files, churn_data, complexity_data,
+                                        global_churn_scores, global_complexity_scores,
+                                        global_threshold, args.hotspot_percentile, output_dir)
             if ranked:
                 results.append(ranked)
         except SystemExit:
             raise
         except Exception as e:
-            print(f"  ERROR: {e}")
+            print(f"  ERROR processing {repo_path}: {e}")
             failed_repos.append(str(repo_path))
 
     # Write consolidated index (when multiple repos)
