@@ -31,6 +31,9 @@ def write_consolidated_html(run, output_path: str) -> None:
         repo_scores.append((median_score, r, min_score, max_score))
     repo_scores.sort(key=lambda x: (x[1].hotspot_ratio, x[1].hotspot_count, x[0]), reverse=True)
 
+    min_str = f"{all_min:.1f}" if all_min is not None else "N/A"
+    max_str = f"{all_max:.1f}" if all_max is not None else "N/A"
+
     repo_rows = ""
     for median_score, r, min_score, max_score in repo_scores:
         link = f"{r.repo_name}/report.html"
@@ -95,8 +98,8 @@ def write_consolidated_html(run, output_path: str) -> None:
         <span>Total repos: {run.total_repos}</span>
         <span>Total files: {run.total_files}</span>
         <span>Total hotspots: {run.total_hotspots}</span>
-        <span>Min score: {all_min:.1f if all_min is not None else 'N/A'}</span>
-        <span>Max score: {all_max:.1f if all_max is not None else 'N/A'}</span>
+        <span>Min score: {min_str}</span>
+        <span>Max score: {max_str}</span>
     </div>
     <h2>Repos</h2>
     <div class="table-wrapper">
