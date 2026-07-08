@@ -1,5 +1,7 @@
 """Tests for consolidated HTML report."""
 
+import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -173,3 +175,91 @@ def test_sort_order_hotspot_then_ratio():
 
     assert pos_a < pos_c, f"repo-a(10hs) should precede repo-c(10hs): {pos_a} vs {pos_c}"
     assert pos_c < pos_b, f"repo-c(10hs) should precede repo-b(5hs): {pos_c} vs {pos_b}"
+
+
+def test_stacked_bar_chart_rendered():
+    """Consolidated HTML must include the stacked bar chart."""
+    r1 = RankedResult()
+    r1.repo_name = "gcms-bo-account"
+    r1.total_files = 80
+    r1.hotspot_count = 7
+    r1.hotspot_ratio = 0.0875
+    r1.all_files = []
+    r1.hotspot_files = []
+    r1.hotspot_percentile = 75
+
+    r2 = RankedResult()
+    r2.repo_name = "smbc-gcms-bo-web"
+    r2.total_files = 1100
+    r2.hotspot_count = 299
+    r2.hotspot_ratio = 0.2718
+    r2.all_files = []
+    r2.hotspot_files = []
+    r2.hotspot_percentile = 75
+
+    run = RunResult(
+        repos=[r1, r2],
+        total_repos=2,
+        total_files=1180,
+        total_hotspots=306,
+        failed_repos=[],
+    )
+
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        html_path = Path(f.name)
+
+    write_consolidated_html(run, str(html_path))
+
+    content = html_path.read_text()
+
+    # Chart styles
+    assert ".chart" in content
+    assert ".chart-bar" in content
+    assert "#e67e22" in content  # hotspot orange
+    assert "#3498db" in content  # file blue
+    # Chart container
+    assert 'id="chart"' in content
+    # Chart legend
+    assert "Hotspots" in content
+    assert "Files" in content
+    # JS chart rendering
+    assert 'repoData' in content
+    assert 'chart-tooltip' in content
+    assert 'chart-legend' in content
+    # Pixel heights used (not percentages)
+    assert 'px' in content
+    assert 'offsetHeight' in content
+
+
+def test_chart_data_json_valid():
+    """Embedded repoData must be valid JSON with correct values."""
+    r = RankedResult()
+    r.repo_name = "gcms-fo-account"
+    r.total_files = 321
+    r.hotspot_count = 28
+    r.hotspot_ratio = 0.0872
+    r.all_files = []
+    r.hotspot_files = []
+    r.hotspot_percentile = 75
+
+    run = RunResult(
+        repos=[r],
+        total_repos=1,
+        total_files=321,
+        total_hotspots=28,
+        failed_repos=[],
+    )
+
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        html_path = Path(f.name)
+
+    write_consolidated_html(run, str(html_path))
+
+    content = html_path.read_text()
+    match = re.search(r'var repoData = (\[.*?\]);', content)
+    assert match, "repoData JSON not found in HTML"
+    data = json.loads(match.group(1))
+    assert len(data) == 1
+    assert data[0]["name"] == "gcms-fo-account"
+    assert data[0]["files"] == 321
+    assert data[0]["hotspots"] == 28
