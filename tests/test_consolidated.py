@@ -124,3 +124,52 @@ def test_sort_order_ratio_then_hotspot():
     assert "<th>Files</th>" in content
     assert "<th>Hotspots</th>" in content
     assert "<th>Ratio</th>" in content
+
+
+def test_sort_order_hotspot_then_ratio():
+    """Repos sorted by hotspot_count DESC, then ratio DESC."""
+    # Repo A: 10 hotspots, 10% ratio
+    fi_a = FileInfo(path="a.java", churn_score=50.0, complexity_score=50.0,
+                    hotspot_score=50.0, commit_count=1, author_count=1)
+    ranked_a = RankedResult(
+        repo_name="repo-a", all_files=[fi_a], hotspot_files=[fi_a],
+        total_files=10, hotspot_count=10, hotspot_ratio=0.10,
+        hotspot_percentile=50,
+    )
+    # Repo B: 5 hotspots, 50% ratio
+    fi_b = FileInfo(path="b.java", churn_score=60.0, complexity_score=60.0,
+                    hotspot_score=60.0, commit_count=1, author_count=1)
+    ranked_b = RankedResult(
+        repo_name="repo-b", all_files=[fi_b], hotspot_files=[fi_b],
+        total_files=10, hotspot_count=5, hotspot_ratio=0.50,
+        hotspot_percentile=75,
+    )
+    # Repo C: 10 hotspots, 5% ratio
+    fi_c = FileInfo(path="c.java", churn_score=30.0, complexity_score=30.0,
+                    hotspot_score=30.0, commit_count=1, author_count=1)
+    ranked_c = RankedResult(
+        repo_name="repo-c", all_files=[fi_c], hotspot_files=[fi_c],
+        total_files=200, hotspot_count=10, hotspot_ratio=0.05,
+        hotspot_percentile=40,
+    )
+
+    run = RunResult(
+        repos=[ranked_b, ranked_a, ranked_c],  # wrong order initially
+        total_repos=3, total_files=30, total_hotspots=25,
+    )
+
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
+        html_path = Path(f.name)
+
+    write_consolidated_html(run, str(html_path))
+    content = html_path.read_text()
+
+    # Find positions: hotspot_count ties -> ratio breaks
+    # repo-a: 10 hotspots, 10% -> should come before repo-c: 10 hotspots, 5%
+    # repo-b: 5 hotspots -> should come last
+    pos_a = content.index('repo-a')
+    pos_c = content.index('repo-c')
+    pos_b = content.index('repo-b')
+
+    assert pos_a < pos_c, f"repo-a(10hs) should precede repo-c(10hs): {pos_a} vs {pos_c}"
+    assert pos_c < pos_b, f"repo-c(10hs) should precede repo-b(5hs): {pos_c} vs {pos_b}"
