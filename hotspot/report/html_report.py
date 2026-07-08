@@ -64,9 +64,9 @@ def write_html_report(result, output_path: str) -> None:
     .table-wrapper {{ background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-x: auto; margin-bottom: 16px; -webkit-overflow-scrolling: touch; }}
     .ranked-table {{ width: 100%; border-collapse: collapse; min-width: 550px; }}
     .ranked-table th {{ background: #2c3e50; color: white; padding: 10px 14px; text-align: left; font-weight: 600; position: sticky; top: 0; }}
-    .ranked-table td {{ padding: 8px 14px; border-top: 1px solid #eee; white-space: nowrap; }}
+    .ranked-table td {{ padding: 8px 14px; border-top: 1px solid #eee; }}
     .ranked-table tr:hover {{ background: #f8f9fa; }}
-    .ranked-table .file-cell {{ font-family: monospace; font-size: 0.85em; max-width: 500px; overflow: hidden; text-overflow: ellipsis; }}
+    .ranked-table .file-cell {{ font-family: monospace; font-size: 0.85em; word-break: break-all; }}
     .ranked-table .num-cell {{ text-align: right; font-variant-numeric: tabular-nums; min-width: 60px; }}
     .ranked-table .lines-cell {{ font-family: monospace; font-size: 0.8em; color: #c53030; min-width: 80px; }}
     .hotspot-row {{ background: #fff5f5; }}
