@@ -13,16 +13,26 @@ def write_consolidated_html(run, output_path: str) -> None:
     """
     date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Repo summary rows — sorted by median score > ratio > hotspots, all descending
+    # Repo summary rows — sorted by ratio > hotspot > median, all descending
     repo_scores = []
+    all_min = None
+    all_max = None
     for r in run.repos:
         scores = [f.hotspot_score for f in r.all_files]
         median_score = statistics.median(scores) if scores else 0
-        repo_scores.append((median_score, r))
-    repo_scores.sort(key=lambda x: (x[0], x[1].hotspot_ratio, x[1].hotspot_count), reverse=True)
+        min_score = min(scores) if scores else 0
+        max_score = max(scores) if scores else 0
+        if all_min is None:
+            all_min = min_score
+            all_max = max_score
+        else:
+            all_min = min(all_min, min_score)
+            all_max = max(all_max, max_score)
+        repo_scores.append((median_score, r, min_score, max_score))
+    repo_scores.sort(key=lambda x: (x[1].hotspot_ratio, x[1].hotspot_count, x[0]), reverse=True)
 
     repo_rows = ""
-    for median_score, r in repo_scores:
+    for median_score, r, min_score, max_score in repo_scores:
         link = f"{r.repo_name}/report.html"
         repo_rows += f"""<tr>
             <td><a href="{html_mod.escape(link)}">{html_mod.escape(r.repo_name)}</a></td>
@@ -30,6 +40,8 @@ def write_consolidated_html(run, output_path: str) -> None:
             <td>{r.hotspot_count}</td>
             <td>{r.hotspot_ratio:.0%}</td>
             <td class="num-cell">{median_score:.1f}</td>
+            <td class="num-cell">{min_score:.1f}</td>
+            <td class="num-cell">{max_score:.1f}</td>
         </tr>"""
 
     # Failed repos
@@ -83,11 +95,13 @@ def write_consolidated_html(run, output_path: str) -> None:
         <span>Total repos: {run.total_repos}</span>
         <span>Total files: {run.total_files}</span>
         <span>Total hotspots: {run.total_hotspots}</span>
+        <span>Min score: {all_min:.1f if all_min is not None else 'N/A'}</span>
+        <span>Max score: {all_max:.1f if all_max is not None else 'N/A'}</span>
     </div>
     <h2>Repos</h2>
     <div class="table-wrapper">
         <table>
-            <thead><tr><th>Repository</th><th>Files</th><th>Hotspots</th><th>Ratio</th><th>Median Score</th></tr></thead>
+            <thead><tr><th>Repository</th><th>Files</th><th>Hotspots</th><th>Ratio</th><th>Median Score</th><th>Min Score</th><th>Max Score</th></tr></thead>
             <tbody>{repo_rows}</tbody>
         </table>
     </div>
